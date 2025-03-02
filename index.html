@@ -6,6 +6,7 @@
     <title>Elite Renovation Works - Transform Your Space</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <!-- Header -->
@@ -1083,5 +1084,25 @@
     <button id="scrollToTop" class="scroll-to-top">
         <i class="fas fa-arrow-up"></i>
     </button>
+
+    <script>
+    // Initialize Supabase directly in HTML
+    const supabase = createClient(
+      'https://nhcttofusmnzlertxjkq.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oY3R0b2Z1c21uemxlcnR4amtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI5NDA2MDYsImV4cCI6MjA0ODUxNjYwNn0.WA6rQWC5ISi5QiWOKbdf3wwrysBSMhEq5Lt_HXEDqEU'
+    );
+
+    // Example usage
+    async function fetchData() {
+      const { data, error } = await supabase
+        .from('your_table')
+        .select('*');
+      
+      if (error) console.error(error);
+      else console.log(data);
+    }
+    
+    fetchData();
+    </script>
 </body>
 </html> 
