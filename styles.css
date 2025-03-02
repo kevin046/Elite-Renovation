@@ -1,18 +1,19 @@
-/* Add this at the very top */
+/* Global Styles */
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #e74c3c;
+    --text-color: #333;
+    --light-bg: #f5f6fa;
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Arial', sans-serif;
-}
-
-html {
-    scroll-behavior: smooth;
-    max-width: 100%;
-    overflow-x: hidden;
 }
 
 body {
+    font-family: 'Arial', sans-serif;
     line-height: 1.6;
     color: var(--text-color);
 }
@@ -23,7 +24,7 @@ body {
     padding: 0 20px;
 }
 
-/* Updated Header Styles */
+/* Header Styles */
 header {
     background: white;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -47,14 +48,12 @@ header .container {
     max-height: 150px;
     object-fit: contain;
     padding: 8px 0;
-    transition: transform 0.3s ease;
 }
 
 .logo img:hover {
-    transform: scale(1.03);
+    opacity: 0.9;
 }
 
-/* Improved Navigation */
 nav ul {
     display: flex;
     list-style: none;
@@ -101,43 +100,32 @@ nav a {
     transition: all 0.3s ease;
 }
 
-/* Mobile Menu Styles */
+.lang-btn:hover {
+    background: var(--secondary-color);
+}
+
+.lang-btn i {
+    font-size: 1.2rem;
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
-    nav ul {
+    .language-toggle {
+        margin: 0 0.5rem;
+    }
+    
+    .lang-btn {
+        padding: 0.4rem 0.8rem;
+    }
+    
+    .lang-text {
         display: none;
-    }
-    
-    .menu-toggle {
-        display: block;
-        background: none;
-        border: none;
-        font-size: 1.5rem;
-        color: var(--primary-color);
-        cursor: pointer;
-        padding: 5px;
-    }
-    
-    nav.active {
-        display: block;
-        position: fixed;
-        top: 80px;
-        left: 0;
-        width: 100%;
-        background: white;
-        padding: 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    
-    nav.active ul {
-        flex-direction: column;
-        gap: 1rem;
     }
 }
 
 /* Hero Section */
 .hero {
-    margin-top: 80px;
-    height: calc(100vh - 80px);
+    height: 100vh;
     position: relative;
     overflow: hidden;
     display: flex;
@@ -334,7 +322,7 @@ nav a {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s ease;
+    transition: transform 0.5s ease;
 }
 
 .portfolio-item:hover img {
@@ -386,12 +374,9 @@ nav a {
 
 /* Footer */
 footer {
-    position: relative;
-    z-index: 100;
-    background: #2c3e50;
+    background: var(--primary-color);
     color: white;
-    padding: 2rem 0;
-    margin-top: auto;
+    padding: 3rem 0 1rem;
 }
 
 .footer-content {
@@ -403,34 +388,12 @@ footer {
 
 .social-links {
     display: flex;
-    justify-content: center;
-    align-items: center;
     gap: 1rem;
 }
 
-.social-icons {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-}
-
-.social-icons a {
-    color: var(--text-color);
-    font-size: 1.2rem;
-    opacity: 0.7;
-    transition: all 0.3s ease;
-}
-
-.social-icons a:hover {
-    opacity: 1;
-    color: var(--secondary-color);
-}
-
-.social-links .admin-link {
-    display: inline-block !important;
-    position: static;
-    background: transparent;
-    padding: 0;
+.social-links a {
+    color: white;
+    font-size: 1.5rem;
 }
 
 .copyright {
@@ -990,40 +953,34 @@ section {
         height: calc(100vh - 80px);
         background: white;
         transition: 0.3s;
-        padding: 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        z-index: 1000;
-        overflow-y: auto;
+        z-index: 999;
     }
-    
+
     nav.active {
         left: 0;
     }
-    
+
     nav ul {
         flex-direction: column;
+        padding: 20px;
         gap: 1rem;
-        padding: 0;
     }
-    
+
     nav a {
         display: block;
-        padding: 12px;
+        padding: 10px;
         font-size: 1.1rem;
-        border-bottom: 1px solid #eee;
     }
 
     /* Mobile Menu Button */
     .menu-toggle {
         display: block;
-        position: fixed;
-        right: 20px;
-        top: 25px;
-        z-index: 1001;
-        background: white;
-        padding: 10px;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--primary-color);
+        cursor: pointer;
+        padding: 5px;
     }
 
     /* Adjust CTA button */
@@ -1128,224 +1085,31 @@ img {
     }
 }
 
-/* Update admin link styles */
+.form-disclaimer {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 0.5rem;
+    text-align: center;
+    font-style: italic;
+    padding: 0 1rem;
+}
+
+/* Add to your existing styles */
 .admin-link {
-    color: var(--text-color);
-    font-size: 1.2rem;
-    opacity: 0.7;
-    transition: all 0.3s ease;
+    color: #666;
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+    margin-left: 15px;
 }
 
 .admin-link:hover {
     opacity: 1;
-    color: var(--secondary-color);
+    color: #e74c3c;
 }
 
-/* Remove the span styles since we're not using text anymore */
-
-/* Responsive admin link */
+/* Optional: Hide admin link on mobile */
 @media (max-width: 768px) {
     .admin-link {
-        display: block !important;
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 1001;
-        background: #e74c3c;
-        padding: 10px;
-        border-radius: 50%;
+        display: none;
     }
-    
-    .admin-link i {
-        font-size: 1.2rem;
-    }
-}
-
-/* Update social links and admin link styles */
-.social-links {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-}
-
-.social-links a {
-    color: white;
-    font-size: 1.2rem;
-    opacity: 0.7;
-    transition: all 0.3s ease;
-}
-
-.social-links a:hover {
-    opacity: 1;
-    color: var(--secondary-color);
-}
-
-/* Remove any other admin-link specific styles */
-
-/* Admin Login Styles */
-.admin-login-container {
-    padding: 3rem 2rem;
-    margin: 6rem auto 2rem;
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-    max-width: 400px;
-    width: 90%;
-}
-
-/* Logo styles for admin login */
-.admin-login-logo {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.admin-login-logo img {
-    height: auto;
-    width: 250px;
-    max-height: 100px;
-    object-fit: contain;
-}
-
-.admin-login-container h1 {
-    text-align: center;
-    margin-bottom: 1.5rem;
-    color: #2c3e50;
-    font-size: 1.8rem;
-}
-
-#adminLoginForm {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-#adminLoginForm .form-group {
-    margin-bottom: 0;
-}
-
-#adminLoginForm label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #2c3e50;
-    font-weight: 500;
-}
-
-#adminLoginForm input {
-    width: 100%;
-    padding: 0.8rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    transition: border-color 0.3s ease;
-}
-
-#adminLoginForm input:focus {
-    outline: none;
-    border-color: var(--secondary-color);
-}
-
-#adminLoginForm button {
-    background: var(--secondary-color);
-    color: white;
-    padding: 0.8rem;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background 0.3s ease;
-    margin-top: 1rem;
-}
-
-#adminLoginForm button:hover {
-    background: #c0392b;
-}
-
-/* Back to home link */
-.back-to-home {
-    text-align: center;
-    margin-top: 1.5rem;
-}
-
-.back-to-home a {
-    color: var(--secondary-color);
-    text-decoration: none;
-    font-size: 0.9rem;
-    transition: color 0.3s ease;
-}
-
-.back-to-home a:hover {
-    color: #c0392b;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .admin-login-container {
-        margin: 4rem auto 2rem;
-        padding: 2rem 1.5rem;
-    }
-    
-    .admin-login-logo img {
-        width: 200px;
-    }
-}
-
-/* Mobile Menu Styles */
-.menu-toggle {
-    position: fixed;
-    right: 20px;
-    top: 20px;
-    z-index: 1001;
-}
-
-@media (max-width: 768px) {
-    .menu-toggle {
-        display: block;
-    }
-    
-    nav {
-        position: fixed;
-        top: 80px;
-        left: -100%;
-        width: 100%;
-        height: calc(100vh - 80px);
-        background: white;
-        transition: 0.3s;
-        padding: 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        z-index: 1000;
-        overflow-y: auto;
-    }
-    
-    nav.active {
-        left: 0;
-    }
-    
-    nav ul {
-        flex-direction: column;
-        gap: 1rem;
-    }
-    
-    nav a {
-        padding: 10px;
-        font-size: 1.1rem;
-    }
-}
-
-/* Ensure desktop navigation remains visible */
-nav {
-    display: flex;
-    align-items: center;
-}
-
-/* Fix header layout */
-header .container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-}
-
-/* CTA button positioning */
-header .cta-button {
-    margin-left: 1rem;
 } 
