@@ -1,82 +1,20 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Admin Login - Elite Renovation Works</title>
-    <link rel="icon" type="image/x-icon" href="https://i.ibb.co/M58mL0J/transparent-elite-home.png">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f6fa;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .login-container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-        .logo {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .logo img {
-            max-width: 200px;
-            height: auto;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #2c3e50;
-            font-weight: bold;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            background: #e74c3c;
-            color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 4px;
-            width: 100%;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:hover {
-            background: #c0392b;
-        }
-        .error-message {
-            color: #e74c3c;
-            margin-top: 10px;
-            text-align: center;
-            display: none;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Elite Renovation</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Add Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <div class="login-container">
-        <a href="../index.html" class="back-btn">
-            <i class="fas fa-arrow-left"></i>
-            Back to Home
-        </a>
-        <div class="logo">
-            <img src="https://i.ibb.co/M58mL0J/transparent-elite-home.png" alt="Elite Renovation Works Logo">
+    <div class="admin-login-container">
+        <div class="admin-login-logo">
+            <img src="https://i.ibb.co/M58mL0J/transparent-elite-home.png" alt="Elite Renovation Logo">
         </div>
-        <form id="loginForm">
+        <h1>Admin Login</h1>
+        <form id="adminLoginForm">
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" required>
@@ -85,37 +23,48 @@
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required>
             </div>
-            <button type="submit">Login</button>
-            <div id="errorMessage" class="error-message">
-                Invalid username or password
-            </div>
+            <button type="submit" class="cta-button">Login</button>
         </form>
+        <div class="back-to-home">
+            <a href="index.html">&larr; Back to Home</a>
+        </div>
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+        // Initialize Supabase client
+        const supabaseUrl = 'https://nhcttofusmnzlertxjkq.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oY3R0b2Z1c21uemxlcnR4amtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI5NDA2MDYsImV4cCI6MjA0ODUxNjYwNn0.WA6rQWC5ISi5QiWOKbdf3wwrysBSMhEq5Lt_HXEDqEU';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('adminLoginForm');
             
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const errorMessage = document.getElementById('errorMessage');
-            
-            // Updated credentials
-            if (username === 'jay' && password === 'jason0729') {
-                // Store authentication in session storage
-                sessionStorage.setItem('adminAuthenticated', 'true');
-                // Redirect to dashboard instead of estimate form
-                window.location.href = './admin-dashboard.html';
-            } else {
-                errorMessage.style.display = 'block';
+            if (loginForm) {
+                loginForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const username = document.getElementById('username').value;
+                    const password = document.getElementById('password').value;
+
+                    try {
+                        const { data, error } = await supabase.auth.signInWithPassword({
+                            email: username,
+                            password: password
+                        });
+
+                        if (error) throw error;
+
+                        if (data) {
+                            // Successful login
+                            window.location.href = '/admin-dashboard';
+                        }
+                    } catch (error) {
+                        alert('Login failed: ' + error.message);
+                    }
+                });
             }
         });
-
-        // Check if already authenticated
-        if (sessionStorage.getItem('adminAuthenticated') === 'true') {
-            window.location.replace('./admin-dashboard.html');
-        }
     </script>
 </body>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </html> 

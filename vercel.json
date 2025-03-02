@@ -18,17 +18,20 @@
       }
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    },
-    {
       "src": "/admin-login",
       "dest": "/admin-login.html"
     },
-    { "handle": "filesystem" }
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
   ],
   "env": {
     "NEXT_PUBLIC_SUPABASE_URL": "https://nhcttofusmnzlertxjkq.supabase.co",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oY3R0b2Z1c21uemxlcnR4amtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI5NDA2MDYsImV4cCI6MjA0ODUxNjYwNn0.WA6rQWC5ISi5QiWOKbdf3wwrysBSMhEq5Lt_HXEDqEU"
   }
+} 
 } 
