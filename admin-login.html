@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - Elite Renovation</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Add Supabase Client Library -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Add Supabase Client Library with correct version -->
+    <script src="https://unpkg.com/@supabase/supabase-js"></script>
 </head>
 <body>
     <div class="admin-login-container">
@@ -14,6 +14,7 @@
             <img src="https://i.ibb.co/M58mL0J/transparent-elite-home.png" alt="Elite Renovation Logo">
         </div>
         <h1>Admin Login</h1>
+        <div id="error-message" class="error-message"></div>
         <form id="adminLoginForm">
             <div class="form-group">
                 <label for="username">Username</label>
@@ -31,14 +32,9 @@
     </div>
 
     <script>
-        // Initialize Supabase client
-        const supabaseUrl = 'https://nhcttofusmnzlertxjkq.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oY3R0b2Z1c21uemxlcnR4amtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI5NDA2MDYsImV4cCI6MjA0ODUxNjYwNn0.WA6rQWC5ISi5QiWOKbdf3wwrysBSMhEq5Lt_HXEDqEU';
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-        // Wait for DOM to be fully loaded
         document.addEventListener('DOMContentLoaded', function() {
             const loginForm = document.getElementById('adminLoginForm');
+            const errorMessage = document.getElementById('error-message');
             
             if (loginForm) {
                 loginForm.addEventListener('submit', async function(e) {
@@ -46,21 +42,32 @@
                     
                     const username = document.getElementById('username').value;
                     const password = document.getElementById('password').value;
+                    const submitButton = this.querySelector('button[type="submit"]');
+                    
+                    // Show loading state
+                    submitButton.classList.add('loading');
+                    submitButton.textContent = 'Logging in...';
+                    errorMessage.style.display = 'none';
 
                     try {
-                        const { data, error } = await supabase.auth.signInWithPassword({
-                            email: username,
-                            password: password
-                        });
-
-                        if (error) throw error;
-
-                        if (data) {
-                            // Successful login
-                            window.location.href = '/admin-dashboard';
+                        // Check credentials
+                        if (username === 'jay' && password === 'jason0729') {
+                            // Store login state
+                            localStorage.setItem('adminLoggedIn', 'true');
+                            // Successful login - redirect to admin dashboard
+                            window.location.href = 'admin-dashboard.html';
+                        } else {
+                            throw new Error('Invalid username or password');
                         }
                     } catch (error) {
-                        alert('Login failed: ' + error.message);
+                        // Show error message
+                        errorMessage.textContent = error.message;
+                        errorMessage.style.display = 'block';
+                        errorMessage.classList.add('show');
+                        
+                        // Reset button state
+                        submitButton.classList.remove('loading');
+                        submitButton.textContent = 'Login';
                     }
                 });
             }

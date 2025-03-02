@@ -22,6 +22,10 @@
       "dest": "/admin-login.html"
     },
     {
+      "src": "/admin-dashboard",
+      "dest": "/admin-dashboard.html"
+    },
+    {
       "handle": "filesystem"
     },
     {
