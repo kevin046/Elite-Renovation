@@ -20,6 +20,10 @@
     {
       "src": "/(.*)",
       "dest": "/index.html"
+    },
+    {
+      "src": "/admin-login",
+      "dest": "/admin-login.html"
     }
   ],
   "env": {
