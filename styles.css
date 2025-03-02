@@ -1112,4 +1112,229 @@ img {
     .admin-link {
         display: none;
     }
+}
+
+/* Admin Login Styles */
+.admin-login-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+}
+
+.admin-login-logo {
+    margin-bottom: 2.5rem;
+    text-align: center;
+}
+
+.admin-login-logo img {
+    height: auto;
+    width: 280px;
+    max-width: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.admin-login-logo img:hover {
+    transform: scale(1.02);
+}
+
+.admin-login-container form {
+    width: 100%;
+    max-width: 400px;
+    background: white;
+    padding: 2.5rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.admin-login-container form:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
+}
+
+.admin-login-container h1 {
+    color: var(--primary-color);
+    font-size: 1.8rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    font-weight: 600;
+}
+
+.admin-login-container .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.admin-login-container label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.admin-login-container input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 2px solid #eef1f6;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background-color: #f8fafc;
+}
+
+.admin-login-container input:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
+.admin-login-container button {
+    width: 100%;
+    padding: 1rem;
+    background: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 1rem;
+}
+
+.admin-login-container button:hover {
+    background: #c0392b;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(231, 76, 60, 0.2);
+}
+
+.admin-login-container button:active {
+    transform: translateY(0);
+}
+
+.back-to-home {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.back-to-home a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 0.95rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+}
+
+.back-to-home a:hover {
+    color: var(--secondary-color);
+    background: rgba(231, 76, 60, 0.05);
+}
+
+/* Error message styling */
+.error-message {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    display: none;
+}
+
+.error-message.show {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Loading state */
+.admin-login-container button.loading {
+    background: #e74c3c88;
+    cursor: not-allowed;
+    position: relative;
+}
+
+.admin-login-container button.loading::after {
+    content: "";
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    margin: -10px 0 0 -10px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .admin-login-container {
+        padding: 1.5rem;
+    }
+
+    .admin-login-container form {
+        padding: 1.5rem;
+    }
+
+    .admin-login-logo img {
+        width: 220px;
+    }
+
+    .admin-login-container h1 {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+}
+
+/* Focus visible outline for accessibility */
+.admin-login-container input:focus-visible,
+.admin-login-container button:focus-visible,
+.back-to-home a:focus-visible {
+    outline: 2px solid var(--secondary-color);
+    outline-offset: 2px;
+}
+
+/* Custom autofill styles */
+.admin-login-container input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 30px #f8fafc inset;
+    -webkit-text-fill-color: var(--primary-color);
+}
+
+.admin-login-container input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 30px white inset;
+}
+
+/* Prevent iOS zoom on input focus */
+@media screen and (max-width: 768px) {
+    .admin-login-container input {
+        font-size: 16px;
+    }
 } 
