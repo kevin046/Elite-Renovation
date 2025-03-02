@@ -1086,23 +1086,11 @@
     </button>
 
     <script>
-    // Initialize Supabase directly in HTML
+    // This should match your vercel.json env vars
     const supabase = createClient(
       'https://nhcttofusmnzlertxjkq.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oY3R0b2Z1c21uemxlcnR4amtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI5NDA2MDYsImV4cCI6MjA0ODUxNjYwNn0.WA6rQWC5ISi5QiWOKbdf3wwrysBSMhEq5Lt_HXEDqEU'
     );
-
-    // Example usage
-    async function fetchData() {
-      const { data, error } = await supabase
-        .from('your_table')
-        .select('*');
-      
-      if (error) console.error(error);
-      else console.log(data);
-    }
-    
-    fetchData();
     </script>
 </body>
 </html> 
