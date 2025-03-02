@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Elite Renovation Works - Transform Your Space</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -1091,6 +1091,26 @@
       'https://nhcttofusmnzlertxjkq.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oY3R0b2Z1c21uemxlcnR4amtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI5NDA2MDYsImV4cCI6MjA0ODUxNjYwNn0.WA6rQWC5ISi5QiWOKbdf3wwrysBSMhEq5Lt_HXEDqEU'
     );
+    </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const stylesheets = document.querySelectorAll('link[rel="stylesheet"]');
+        stylesheets.forEach(sheet => {
+            if (!sheet.sheet) {
+                console.error('Stylesheet failed to load:', sheet.href);
+                // Fallback to embedded critical CSS
+                const fallbackCSS = `
+                    body { font-family: Arial, sans-serif; }
+                    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+                    /* Add more critical CSS here */
+                `;
+                const styleTag = document.createElement('style');
+                styleTag.textContent = fallbackCSS;
+                document.head.appendChild(styleTag);
+            }
+        });
+    });
     </script>
 </body>
 </html> 
