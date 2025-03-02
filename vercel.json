@@ -24,7 +24,8 @@
     {
       "src": "/admin-login",
       "dest": "/admin-login.html"
-    }
+    },
+    { "handle": "filesystem" }
   ],
   "env": {
     "NEXT_PUBLIC_SUPABASE_URL": "https://nhcttofusmnzlertxjkq.supabase.co",
