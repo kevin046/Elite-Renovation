@@ -347,6 +347,178 @@
             position: relative;
             z-index: 1;
         }
+
+        .payment-group {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .payment-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .payment-row input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .form-section {
+            margin: 15px 0;
+        }
+
+        select {
+            padding: 8px;
+            margin-left: 10px;
+        }
+
+        .payment-schedule {
+            margin: 20px 0;
+        }
+
+        .payment-group {
+            margin-bottom: 15px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+
+        .payment-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 2fr;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .payment-row input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .payment-row input[type="number"] {
+            background-color: #f8f9fa;
+        }
+
+        /* Add these styles to the existing CSS */
+        .cost-breakdown-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .line-items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .line-items-table thead th {
+            background: #2c3e50;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .line-items-table tbody td {
+            padding: 10px;
+            background: white;
+            border-bottom: 1px solid #eee;
+        }
+
+        .line-items-table input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .line-items-table input:focus {
+            border-color: #e74c3c;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(231,76,60,0.1);
+        }
+
+        .item-total {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        #addItemButton {
+            background: #e74c3c;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 15px 0;
+        }
+
+        #addItemButton:hover {
+            background: #c0392b;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(231,76,60,0.2);
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            border-radius: 4px;
+            padding: 5px 10px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+            transform: scale(1.05);
+        }
+
+        /* Update the cost breakdown section structure */
+
+        /* Add this style for the select element */
+        .modern-select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+        }
+
+        .payment-row input[type="number"].ratio {
+            width: 80px;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            text-align: right;
+        }
+
+        .payment-row input[type="number"].ratio:invalid {
+            border-color: #e74c3c;
+            background-color: #fff0f0;
+        }
+
+        .payment-row span {
+            margin-left: -30px;
+            width: 20px;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -371,7 +543,7 @@
             
             <form id="estimateForm">
                 <label>Estimate #:</label>
-                        <input type="text" name="estimateNumber" readonly>
+                <input type="text" class="form-control" id="estimateNumber" name="estimateNumber" required readonly>
                 <!-- Client Information -->
                 <div class="form-section">
                     <h2 class="section-title">Client Information</h2>
@@ -436,11 +608,11 @@
                 </div>
 
                 <!-- Cost Breakdown -->
-                <div class="form-section">
+                <div class="form-section cost-breakdown-section">
                     <h2 class="section-title">Cost Breakdown</h2>
                     <div class="form-group">
                         <label>Payment Method:</label>
-                        <select name="paymentMethod" id="paymentMethod" onchange="updateTaxCalculation()">
+                        <select name="paymentMethod" id="paymentMethod" class="modern-select" onchange="updateTaxCalculation()">
                             <option value="cash">Cash Payment (Tax Free)</option>
                             <option value="cash">E-Transfer (weiye8386@gmail.com) (Tax Free)</option>
                             <option value="regular">Credit Card 3.5% surcharge</option>
@@ -449,16 +621,24 @@
                         </select>
                     </div>
 
-                    <div class="line-items" id="lineItems">
-                        <div class="line-item">
-                            <label>Description</label>
-                            <label>Quantity</label>
-                            <label>Unit Price</label>
-                            <label>Amount</label>
-                            <label></label>
-                        </div>
-                    </div>
-                    <button type="button" class="add-item" onclick="addLineItem()">+ Add Item</button>
+                    <table class="line-items-table">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th style="width: 100px;">Qty</th>
+                                <th style="width: 120px;">Unit Price</th>
+                                <th style="width: 120px;">Amount</th>
+                                <th style="width: 50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="lineItems">
+                            <!-- Existing rows will be added here -->
+                        </tbody>
+                    </table>
+
+                    <button type="button" class="btn btn-primary" id="addItemButton">
+                        <i class="fas fa-plus"></i> Add Line Item
+                    </button>
                     
                     <div class="form-row">
                         <div class="form-group">
@@ -494,28 +674,58 @@
                         <input type="number" name="total" readonly>
                     </div>
 
-                    <!-- Add Payment Instructions -->
-                    <div class="payment-instructions">
-                        <h3>Payment Schedule:</h3>
-                        <div class="form-group">
-                            <label>Second Payment Milestone:</label>
-                            <input type="text" 
-                                name="secondPaymentMilestone" 
-                                id="secondPaymentMilestone"
-                                value="at 50% project completion"
-                                placeholder="Enter milestone description">
+                    <!-- Update payment schedule section -->
+                    <div class="form-section">
+                        <label for="paymentCount">Payment Schedule:</label>
+                        <select id="paymentCount" name="paymentCount" onchange="updatePaymentSchedule()">
+                            <option value="3">Standard 3 Payments (Default)</option>
+                            <option value="1">1 Custom Payment</option>
+                            <option value="2">2 Custom Payments</option>
+                            <option value="3">3 Custom Payments</option>
+                        </select>
+                    </div>
+
+                    <!-- Default payment schedule with editable fields -->
+                    <div id="defaultPayments" class="payment-schedule">
+                        <div class="payment-group">
+                            <h4>Payment 1</h4>
+                            <div class="payment-row">
+                                <input type="number" class="ratio" value="40" min="0" max="100" step="1" 
+                                       oninput="updateDefaultPayments(this)" data-original="40">
+                                <span>%</span>
+                                <input type="number" class="amount" readonly>
+                                <input type="text" class="description" value="upon signing contract">
+                            </div>
                         </div>
-                        <ul>
-                            <li>First Payment: 40% of total amount due upon signing contract</li>
-                            <li>Second Payment: 50% of total amount due <span id="milestoneDisplay">at 50% project completion</span></li>
-                            <li>Final Payment: 10% of total amount due upon project completion</li>
-                        </ul>
-                        <p class="payment-disclaimer">
-                            * This estimate is valid for 15 days from the date of issue.<br>
-                            * All payments must be made within 5 business days of reaching each milestone.<br>
-                            * Work will commence upon receipt of first payment and signed contract.<br>
-                            * Any changes to the scope of work may affect the final price.
-                        </p>
+                        <div class="payment-group">
+                            <h4>Payment 2</h4>
+                            <div class="payment-row">
+                                <input type="number" class="ratio" value="50" min="0" max="100" step="1"
+                                       oninput="updateDefaultPayments(this)" data-original="50">
+                                <span>%</span>
+                                <input type="number" class="amount" readonly>
+                                <input type="text" class="description" value="at 50% project completion" 
+                                       id="milestoneInput" oninput="updateMilestoneDisplay(this.value)">
+                            </div>
+                        </div>
+                        <div class="payment-group">
+                            <h4>Payment 3</h4>
+                            <div class="payment-row">
+                                <input type="number" class="ratio" value="10" min="0" max="100" step="1"
+                                       oninput="updateDefaultPayments(this)" data-original="10">
+                                <span>%</span>
+                                <input type="number" class="amount" readonly>
+                                <input type="text" class="description" value="upon project completion">
+                            </div>
+                        </div>
+                        <div id="percentageWarning" style="color: #e74c3c; display: none; margin-top: 10px;">
+                            ⚠️ Total percentages must add up to exactly 100%
+                        </div>
+                    </div>
+
+                    <!-- Custom payment container -->
+                    <div id="customPayments" style="display: none;">
+                        <!-- Dynamic payment fields will be generated here -->
                     </div>
                 </div>
 
@@ -535,118 +745,94 @@
         const { createClient } = supabase
         const supabaseClient = createClient(supabaseUrl, supabaseKey)
 
-        // Generate estimate number
+        // Generate estimate number function
         function generateEstimateNumber() {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = (today.getMonth() + 1).toString().padStart(2, '0');
-            const day = today.getDate().toString().padStart(2, '0');
-            const randomNum = Math.floor(Math.random() * (9999 - 1000 + 1) + 1000);
-            return `EST-${year}${month}${day}-${randomNum}`;
+            const now = new Date();
+            const ymd = now.toISOString().slice(0,10).replace(/-/g, '');
+            const random = Math.floor(1000 + Math.random() * 9000);
+            return `EST-${ymd}-${random}`;
         }
 
+        // Initialize estimate number when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            // Check for edit data
-            const editData = sessionStorage.getItem('editEstimateData');
-            if (editData) {
-                const estimate = JSON.parse(editData);
-                
-                // Fill in form fields
-                document.querySelector('[name="estimateNumber"]').value = estimate.estimate_number;
-                document.querySelector('[name="clientName"]').value = estimate.client_name;
-                document.querySelector('[name="clientEmail"]').value = estimate.client_email;
-                document.querySelector('[name="clientPhone"]').value = estimate.client_phone;
-                
-                // Split address back into parts
-                const [street, city] = estimate.client_address.split(', ');
-                document.querySelector('[name="clientStreet"]').value = street;
-                document.querySelector('[name="clientCity"]').value = city;
-                
-                document.querySelector('[name="projectDescription"]').value = estimate.project_description;
-                document.getElementById('paymentMethod').value = estimate.payment_method;
-                
-                // Add line items
-                estimate.line_items.forEach(item => {
-                    const lineItem = document.createElement('div');
-                    lineItem.className = 'line-item';
-                    lineItem.innerHTML = `
-                        <input type="text" name="description[]" value="${item.description}" required>
-                        <input type="number" name="quantity[]" value="${item.quantity}" required>
-                        <input type="number" name="unitPrice[]" value="${item.unit_price}" required>
-                        <input type="number" name="amount[]" value="${item.amount}" readonly>
-                        <button type="button" class="remove-item" onclick="this.parentElement.remove(); calculateTotals();">×</button>
-                    `;
-                    document.getElementById('lineItems').appendChild(lineItem);
-                });
-                
-                // Update totals
-                document.querySelector('[name="subtotal"]').value = estimate.subtotal;
-                document.querySelector('[name="tax"]').value = estimate.tax;
-                document.querySelector('[name="total"]').value = estimate.total;
-                
-                // Clear the stored data
-                sessionStorage.removeItem('editEstimateData');
-            } else {
-                // Generate new estimate number only if not editing
-                document.querySelector('[name="estimateNumber"]').value = generateEstimateNumber();
-            }
-
-            // Handle city selection
-            const citySelect = document.querySelector('[name="clientCity"]');
-            const otherCityGroup = document.getElementById('otherCityGroup');
-            const otherCityInput = document.querySelector('[name="otherCity"]');
-
-            citySelect.addEventListener('change', function() {
-                if (this.value === 'Other') {
-                    otherCityGroup.style.display = 'block';
-                    otherCityInput.required = true;
-                } else {
-                    otherCityGroup.style.display = 'none';
-                    otherCityInput.required = false;
-                    otherCityInput.value = '';
-                }
-            });
-
-            // Format postal code
-            const postalInput = document.querySelector('[name="clientPostal"]');
-            postalInput.addEventListener('input', function() {
-                let value = this.value.toUpperCase();
-                value = value.replace(/[^A-Z0-9]/g, '');
-                if (value.length > 3) {
-                    value = value.slice(0, 3) + ' ' + value.slice(3, 6);
-                }
-                this.value = value;
+            document.getElementById('estimateNumber').value = generateEstimateNumber();
+            
+            // Correct event listener for Add Item button
+            document.getElementById('addItemButton').addEventListener('click', function() {
+                addLineItem();
             });
         });
 
-        // Add line item
+        // Add line item function
         function addLineItem() {
-            const container = document.getElementById('lineItems');
-            const lineItem = document.createElement('div');
-            lineItem.className = 'line-item';
-            lineItem.innerHTML = `
-                <input type="text" name="description[]" placeholder="Description" required>
-                <input type="number" name="quantity[]" placeholder="Qty" min="1" step="1" required>
-                <input type="number" name="unitPrice[]" placeholder="Price" step="0.01" required>
-                <input type="number" name="amount[]" readonly>
-                <button type="button" class="remove-item" onclick="this.parentElement.remove(); calculateTotals();">×</button>
+            const lineItems = document.getElementById('lineItems');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td><input type="text" class="form-control item-desc" required></td>
+                <td><input type="number" class="form-control quantity" min="0" step="1" value="1" required></td>
+                <td><input type="number" class="form-control rate" min="0" step="0.01" value="0.00" required></td>
+                <td><span class="item-total">0.00</span></td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeLineItem(this)">×</button>
+                </td>
             `;
-            container.appendChild(lineItem);
-
-            // Add event listeners for calculation
-            const qtyInput = lineItem.querySelector('[name="quantity[]"]');
-            const priceInput = lineItem.querySelector('[name="unitPrice[]"]');
-            const amountInput = lineItem.querySelector('[name="amount[]"]');
-
-            [qtyInput, priceInput].forEach(input => {
-                input.addEventListener('input', () => {
-                    const qty = Number(qtyInput.value) || 0;
-                    const price = Number(priceInput.value) || 0;
-                    amountInput.value = (qty * price).toFixed(2);
-                    calculateTotals();
-                });
-            });
+            lineItems.appendChild(newRow);
+            
+            // Add event listeners for calculations
+            newRow.querySelector('.quantity').addEventListener('input', calculateTotal);
+            newRow.querySelector('.rate').addEventListener('input', calculateTotal);
         }
+
+        // Remove line item function
+        function removeLineItem(btn) {
+            btn.closest('tr').remove();
+            calculateTotal();
+        }
+
+        // Calculate total function
+        function calculateTotal() {
+            let subtotal = 0;
+            document.querySelectorAll('#lineItems tr').forEach(row => {
+                const qty = parseFloat(row.querySelector('.quantity').value) || 0;
+                const rate = parseFloat(row.querySelector('.rate').value) || 0;
+                const total = qty * rate;
+                row.querySelector('.item-total').textContent = total.toFixed(2);
+                subtotal += total;
+            });
+            
+            // Update subtotal field
+            document.querySelector('[name="subtotal"]').value = subtotal.toFixed(2);
+            
+            // Trigger full calculations
+            calculateTotals();
+        }
+
+        // Handle city selection
+        const citySelect = document.querySelector('[name="clientCity"]');
+        const otherCityGroup = document.getElementById('otherCityGroup');
+        const otherCityInput = document.querySelector('[name="otherCity"]');
+
+        citySelect.addEventListener('change', function() {
+            if (this.value === 'Other') {
+                otherCityGroup.style.display = 'block';
+                otherCityInput.required = true;
+            } else {
+                otherCityGroup.style.display = 'none';
+                otherCityInput.required = false;
+                otherCityInput.value = '';
+            }
+        });
+
+        // Format postal code
+        const postalInput = document.querySelector('[name="clientPostal"]');
+        postalInput.addEventListener('input', function() {
+            let value = this.value.toUpperCase();
+            value = value.replace(/[^A-Z0-9]/g, '');
+            if (value.length > 3) {
+                value = value.slice(0, 3) + ' ' + value.slice(3, 6);
+            }
+            this.value = value;
+        });
 
         // Update tax calculation
         function updateTaxCalculation() {
@@ -658,102 +844,202 @@
 
         // Calculate totals
         function calculateTotals() {
-            const amounts = [...document.getElementsByName('amount[]')].map(input => Number(input.value) || 0);
-            const subtotal = amounts.reduce((sum, amount) => sum + amount, 0);
+            // Get all necessary values
+            const subtotal = parseFloat(document.querySelector('[name="subtotal"]').value) || 0;
             const discountType = document.getElementById('discountType').value;
             const discountAmount = parseFloat(document.querySelector('[name="discountAmount"]').value) || 0;
-            
-            // Validate percentage input
+            const paymentMethod = document.getElementById('paymentMethod').value;
+
+            // Validate discount inputs
             if (discountType === 'percentage' && discountAmount > 100) {
                 document.querySelector('[name="discountAmount"]').value = 100;
                 return calculateTotals();
             }
-            
-            // Validate fixed amount input
             if (discountType === 'fixed' && discountAmount > subtotal) {
                 document.querySelector('[name="discountAmount"]').value = subtotal;
-                alert('Discount amount cannot exceed subtotal');
                 return calculateTotals();
             }
 
+            // Calculate after discount
             let afterDiscount = subtotal;
             if (discountType === 'percentage') {
                 afterDiscount = subtotal * (1 - discountAmount / 100);
             } else if (discountType === 'fixed') {
                 afterDiscount = subtotal - discountAmount;
             }
-            
-            const paymentMethod = document.getElementById('paymentMethod').value;
-            const tax = paymentMethod === 'regular' ? afterDiscount * 0.13 : 0;
-            const total = afterDiscount + tax;
 
-            document.querySelector('[name="subtotal"]').value = subtotal.toFixed(2);
+            // Calculate tax
+            const tax = paymentMethod === 'regular' ? afterDiscount * 0.13 : 0;
+            const totalAmount = afterDiscount + tax;
+
+            // Update form fields
             document.querySelector('[name="afterDiscount"]').value = afterDiscount.toFixed(2);
             document.querySelector('[name="tax"]').value = tax.toFixed(2);
-            document.querySelector('[name="total"]').value = total.toFixed(2);
+            document.querySelector('[name="total"]').value = totalAmount.toFixed(2);
+
+            // Force payment updates
+            if (document.getElementById('paymentCount').value === '3') {
+                calculateDefaultPayments(totalAmount);
+            } else {
+                validateCustomPayments();
+            }
         }
 
         // Update the form submission handler
         document.getElementById('estimateForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const submitButton = this.querySelector('button[type="submit"]');
-            submitButton.disabled = true;
-            submitButton.textContent = 'Generating...';
-            
             try {
-                // Prepare data for Supabase
+                // Validate payment schedule
+                if (!validatePaymentsBeforePDF()) {
+                    return;
+                }
+                
+                // Get form data
+                const formData = new FormData(this);
+                
+                // Initialize paymentSchedule variable before use
+                let paymentSchedule = [];
+                
+                // Collect payment schedule data based on type
+                if (document.getElementById('paymentCount').value === '3') {
+                    paymentSchedule = Array.from(document.querySelectorAll('#defaultPayments .payment-group')).map(group => ({
+                        percent: parseFloat(group.querySelector('.ratio').value),
+                        amount: parseFloat(group.querySelector('.amount').value),
+                        description: group.querySelector('.description').value
+                    }));
+                } else {
+                    paymentSchedule = Array.from(document.querySelectorAll('#customPayments .payment-group')).map(group => ({
+                        percent: parseFloat(group.querySelector('.ratio').value),
+                        amount: parseFloat(group.querySelector('.amount').value),
+                        description: group.querySelector('.description').value
+                    }));
+                }
+                
+                // Continue with the rest of the form submission...
+                
+                // Reference is now safe since paymentSchedule is defined
                 const estimateData = {
                     estimate_number: document.querySelector('[name="estimateNumber"]').value,
+                    client_postal: document.querySelector('[name="clientPostal"]').value.trim(),
                     client_name: document.querySelector('[name="clientName"]').value,
                     client_email: document.querySelector('[name="clientEmail"]').value,
                     client_phone: document.querySelector('[name="clientPhone"]').value,
-                    client_address: `${document.querySelector('[name="clientStreet"]').value}, ${document.querySelector('[name="clientCity"]').value}`,
+                    client_address: `${document.querySelector('[name="clientStreet"]').value.trim()}, ${document.querySelector('[name="clientCity"]').value.trim()} ${document.querySelector('[name="clientPostal"]').value.trim()}`,
                     project_description: document.querySelector('[name="projectDescription"]').value,
                     payment_method: document.getElementById('paymentMethod').value,
                     subtotal: parseFloat(document.querySelector('[name="subtotal"]').value),
                     tax: parseFloat(document.querySelector('[name="tax"]').value),
                     total: parseFloat(document.querySelector('[name="total"]').value),
-                    line_items: [...document.querySelectorAll('.line-item')].slice(1).map(item => ({
-                        description: item.querySelector('[name="description[]"]').value,
-                        quantity: item.querySelector('[name="quantity[]"]').value,
-                        unit_price: item.querySelector('[name="unitPrice[]"]').value,
-                        amount: item.querySelector('[name="amount[]"]').value
+                    line_items: [...document.querySelectorAll('#lineItems tr')].filter(row => 
+                        row.querySelector('.item-desc')?.value?.trim() && 
+                        parseFloat(row.querySelector('.quantity')?.value || 0) > 0
+                    ).map(row => ({
+                        description: row.querySelector('.item-desc')?.value?.trim() || '',
+                        quantity: parseFloat(row.querySelector('.quantity')?.value || 0),
+                        unit_price: parseFloat(row.querySelector('.rate')?.value || 0),
+                        amount: parseFloat(row.querySelector('.item-total')?.textContent?.replace(/[^0-9.]/g, '') || 0)
                     })),
-                    status: 'pending'
+                    status: 'pending',
+                    discount_type: document.getElementById('discountType').value,
+                    discount_amount: parseFloat(document.querySelector('[name="discountAmount"]').value) || 0,
+                    after_discount: parseFloat(document.querySelector('[name="afterDiscount"]').value) || 0
                 };
 
-                // Check if estimate exists
-                const { data: existingEstimate, error: checkError } = await supabaseClient
-                    .from('estimates')
-                    .select('id')
-                    .eq('estimate_number', estimateData.estimate_number)
-                    .single();
+                // Make a clean copy without any fields not in the database
+                const databaseEstimateData = {
+                    estimate_number: estimateData.estimate_number,
+                    client_name: estimateData.client_name,
+                    client_email: estimateData.client_email,
+                    client_phone: estimateData.client_phone,
+                    client_address: estimateData.client_address,
+                    client_postal: document.querySelector('[name="clientPostal"]').value.trim().replace(/\s+/g, ' '),
+                    project_description: estimateData.project_description,
+                    payment_method: estimateData.payment_method,
+                    subtotal: estimateData.subtotal,
+                    tax: estimateData.tax,
+                    total: estimateData.total,
+                    line_items: estimateData.line_items,
+                    status: estimateData.status,
+                    discount_type: estimateData.discount_type,
+                    discount_amount: estimateData.discount_amount,
+                    after_discount: estimateData.after_discount
+                };
 
+                // Update the database lookup section
+                // Replace the existing check for estimate with this code
                 let error;
-                if (existingEstimate) {
-                    // Update existing estimate
-                    const { error: updateError } = await supabaseClient
-                        .from('estimates')
-                        .update(estimateData)
-                        .eq('id', existingEstimate.id);
-                    error = updateError;
-                } else {
-                    // Insert new estimate
-                    const { error: insertError } = await supabaseClient
-                        .from('estimates')
-                        .insert([estimateData]);
-                    error = insertError;
-                }
-
-                if (error) {
-                    console.error('Error:', error);
-                    throw error;
+                try {
+                    // Only check for existing estimate if we have a valid estimate number
+                    const estimateNumber = document.querySelector('[name="estimateNumber"]').value;
+                    
+                    if (estimateNumber && estimateNumber.trim() !== '') {
+                        // Check if estimate exists
+                        const { data: existingEstimate, error: checkError } = await supabaseClient
+                            .from('estimates')
+                            .select('id')
+                            .eq('estimate_number', estimateNumber)
+                            .maybeSingle();  // Use maybeSingle instead of single to avoid errors
+                        
+                        if (checkError) {
+                            console.error('Error checking existing estimate:', checkError);
+                            throw checkError;
+                        }
+                        
+                        if (existingEstimate) {
+                            // Update existing estimate (keep ID out of update data)
+                            const { error: updateError } = await supabaseClient
+                                .from('estimates')
+                                .update(databaseEstimateData)
+                                .eq('id', existingEstimate.id);
+                                
+                            if (updateError) {
+                                console.error('Error updating estimate:', updateError);
+                                throw updateError;
+                            }
+                            console.log('Updated existing estimate');
+                        } else {
+                            // Insert new estimate (let database generate ID)
+                            const { error: insertError, data: insertedData } = await supabaseClient
+                                .from('estimates')
+                                .insert([databaseEstimateData])
+                                .select();
+                                
+                            if (insertError) {
+                                console.error('Error inserting estimate:', insertError);
+                                throw insertError;
+                            }
+                            console.log('Inserted new estimate', insertedData);
+                        }
+                    } else {
+                        // No estimate number, always insert new
+                        const { error: insertError } = await supabaseClient
+                            .from('estimates')
+                            .insert([databaseEstimateData]);
+                            
+                        if (insertError) {
+                            console.error('Error inserting estimate:', insertError);
+                            throw insertError;
+                        }
+                        console.log('Inserted new estimate (no number provided)');
+                    }
+                } catch (dbError) {
+                    console.error('Database operation failed:', dbError);
+                    throw dbError;
                 }
 
                 // Create PDF
                 window.jsPDF = window.jspdf.jsPDF;
-                const doc = new window.jsPDF();
+                const doc = new window.jsPDF({
+                    unit: 'mm',
+                    format: 'a4',
+                    compress: true,
+                    lineHeight: 1.4
+                });
+                
+                // Set consistent font
+                doc.setFont('helvetica');
+                doc.setFontSize(11);
                 
                 // Add company logo
                 const logoUrl = 'https://i.ibb.co/M58mL0J/transparent-elite-home.png';
@@ -780,7 +1066,6 @@
                         'Representative: Jay',
                         'Phone: 647-563-1314',
                         'Email: jay@eliterenovationworks.ca',
-                        document.getElementById('paymentMethod').value !== 'cash' ? 'GST/HST: 743299224RT0001' : ''
                     ], doc.internal.pageSize.width - 15, 25, { 
                         align: 'right',
                         lineHeightFactor: 1.5
@@ -815,11 +1100,11 @@
                     doc.autoTable({
                         startY: imgHeight + 80,
                         head: [['Description', 'Quantity', 'Unit Price', 'Amount']],
-                        body: [...document.querySelectorAll('.line-item')].slice(1).map(item => [
-                            item.querySelector('[name="description[]"]').value,
-                            item.querySelector('[name="quantity[]"]').value,
-                            '$' + item.querySelector('[name="unitPrice[]"]').value,
-                            '$' + item.querySelector('[name="amount[]"]').value
+                        body: [...document.querySelectorAll('#lineItems tr')].map(row => [
+                            row.querySelector('.item-desc').value,
+                            row.querySelector('.quantity').value,
+                            '$' + row.querySelector('.rate').value,
+                            '$' + row.querySelector('.item-total').textContent
                         ]),
                         foot: [
                             ['', '', 'Subtotal:', '$' + document.querySelector('[name="subtotal"]').value],
@@ -871,37 +1156,51 @@
                     });
 
                     // Add payment info with improved formatting
-                    const finalY = doc.lastAutoTable.finalY + 15;
+                    let finalY = doc.lastAutoTable.finalY + 15;
                     doc.setFontSize(10);
-                    const paymentMethodSelect = document.getElementById('paymentMethod');
-                    const paymentMethodText = paymentMethodSelect.options[paymentMethodSelect.selectedIndex].text;
-                    doc.text('Payment Method: ' + paymentMethodText, 15, finalY);
-                    doc.text('Payment Schedule:', 15, finalY + 10);
-                    doc.setFontSize(9);
+                    doc.setTextColor(44, 62, 80); // Dark blue-grey
+                    doc.setFont(undefined, 'normal');
+                    doc.text("Payment Method:", 20, finalY);
+                    doc.setTextColor(0, 0, 0); // Black
+                    doc.text(document.getElementById('paymentMethod').selectedOptions[0].text, 50, finalY);
+                    finalY += 5;
 
-                    // Calculate payment amounts
-                    const totalAmount = parseFloat(document.querySelector('[name="total"]').value);
-                    const firstPayment = Math.round(totalAmount * 0.4);  // 40% of total
-                    const secondPayment = Math.round(totalAmount * 0.5); // 50% of total
-                    const finalPayment = totalAmount - firstPayment - secondPayment; // Remaining 10%
-                    
-                    // Format amounts to 2 decimal places
-                    const formatAmount = (amount) => '$' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                    
-                    // Display payment schedule with exact amounts
-                    doc.setTextColor(0, 0, 0);  // Set to black for payment schedule
-                    const secondPaymentMilestone = document.getElementById('secondPaymentMilestone').value || 'at 50% project completion';
-                    doc.text([
-                        `• First Payment: ${formatAmount(firstPayment)} (40%) due upon signing contract`,
-                        `• Second Payment: ${formatAmount(secondPayment)} (50%) due ${secondPaymentMilestone}`,
-                        `• Final Payment: ${formatAmount(finalPayment)} (10%) due upon project completion`,
-                    ], 20, finalY + 20, {
-                        lineHeightFactor: 1.5
+                    // Add spacing before payment schedule
+                    finalY += 8;
+                    doc.setFont(undefined, 'normal');
+                    doc.setTextColor(44, 62, 80); // Dark blue-grey
+                    doc.text("Payment Schedule:", 20, finalY);
+                    finalY += 5;
+
+                    // Payment schedule items
+                    let currentY = finalY;
+                    paymentSchedule.forEach((payment, index) => {
+                        doc.setFontSize(9);
+                        doc.setTextColor(0, 0, 0); // Black text
+                        
+                        // Payment number and percentage
+                        doc.setFont(undefined, 'normal');
+                        doc.text(`• Payment ${index + 1} (${payment.percent}%)`, 20, currentY);
+                        
+                        // Amount
+                        doc.text(payment.amount.toLocaleString('en-US', {
+                            style: 'currency',
+                            currency: 'USD'
+                        }), 70, currentY);
+                        
+                        // Description
+                        const descLines = doc.splitTextToSize(payment.description, 160); // Increased width
+                        doc.text(descLines, 22, currentY + 4);
+                        
+                        currentY += (descLines.length * 4) + 8; // Tighter spacing
                     });
+
+                    // Reduce vertical spacing after payments
+                    currentY += 8;
 
                     // Add disclaimer in red
                     doc.setTextColor(231, 76, 60);  // Set to red for disclaimer
-                    doc.text('* This estimate is valid for 15 days from the date of issue.', 20, finalY + 50);
+                    doc.text('* This estimate is valid for 15 days from the date of issue.', 20, currentY);
                     doc.setTextColor(0, 0, 0);  // Reset back to black
 
                     // Start second page
@@ -923,13 +1222,11 @@
                     doc.setTextColor(100, 100, 100);
                     const pageWidth = doc.internal.pageSize.width;
 
-                    // Add GST/HST number if not cash payment
-                    const paymentMethod = document.getElementById('paymentMethod').value;
-                    if (paymentMethod !== 'cash') {
-                        doc.text('GST/HST: 743299224RT0001', pageWidth/2, doc.internal.pageSize.height - 10, {
-                            align: 'center'
-                        });
-                    }
+                    // Add thank you message
+                    doc.text('Thank you for choosing Elite Renovation Works!', pageWidth/2, doc.internal.pageSize.height - 10, {
+                        align: 'center',
+                        fontSize: 9
+                    });
 
                     // Save PDF
                     doc.save(`estimate-${document.querySelector('[name="estimateNumber"]').value}.pdf`);
@@ -942,9 +1239,6 @@
             } catch (error) {
                 console.error('Error:', error);
                 alert('Failed to generate or save estimate. Please try again.');
-            } finally {
-                submitButton.disabled = false;
-                submitButton.textContent = 'Generate Estimate';
             }
         });
 
@@ -977,8 +1271,345 @@
         document.getElementById('discountType').addEventListener('change', updateDiscountInput);
 
         // Add event listener to update the display text when milestone description changes
-        document.getElementById('secondPaymentMilestone').addEventListener('input', function(e) {
+        document.getElementById('milestoneInput').addEventListener('input', function(e) {
             document.getElementById('milestoneDisplay').textContent = e.target.value || 'at 50% project completion';
+        });
+
+        function updatePaymentSchedule() {
+            const scheduleType = document.getElementById('paymentCount').value;
+            const totalAmount = parseFloat(document.querySelector('[name="total"]').value) || 0;
+            
+            if (scheduleType === '3') { // Default 3 payments
+                document.getElementById('defaultPayments').style.display = 'block';
+                document.getElementById('customPayments').style.display = 'none';
+                calculateDefaultPayments(totalAmount);
+            } else {
+                document.getElementById('defaultPayments').style.display = 'none';
+                document.getElementById('customPayments').style.display = 'block';
+                generateCustomPaymentFields(scheduleType, totalAmount);
+            }
+        }
+
+        function calculateDefaultPayments(totalAmount) {
+            document.querySelectorAll('#defaultPayments .payment-group').forEach(group => {
+                const ratioInput = group.querySelector('.ratio');
+                const amountInput = group.querySelector('.amount');
+                const currentPercent = parseFloat(ratioInput.value) || 0;
+                
+                // Always use current input value for calculations
+                const calculatedAmount = (totalAmount * currentPercent / 100).toFixed(2);
+                amountInput.value = calculatedAmount;
+                
+                // Update the original reference for validation
+                ratioInput.dataset.original = currentPercent;
+            });
+        }
+
+        function generateCustomPaymentFields(numberOfPayments, totalAmount) {
+            const container = document.getElementById('customPayments');
+            container.innerHTML = `
+                <div id="customPercentageWarning" style="color: #e74c3c; display: none; margin: 10px 0;">
+                    ⚠️ Total percentages must add up to exactly 100%
+                </div>
+            `;
+
+            for (let i = 1; i <= numberOfPayments; i++) {
+                const paymentHTML = `
+                    <div class="payment-group">
+                        <h4>Payment ${i}</h4>
+                        <div class="payment-row">
+                            <input type="number" class="ratio" placeholder="Percentage" 
+                                   min="0" max="100" step="1" 
+                                   oninput="validateCustomPayments()">
+                            <span>%</span>
+                            <input type="number" class="amount" readonly>
+                            <input type="text" class="description" placeholder="Payment description">
+                        </div>
+                    </div>`;
+                container.insertAdjacentHTML('beforeend', paymentHTML);
+            }
+        }
+
+        function validateCustomPayments() {
+            const inputs = [...document.querySelectorAll('#customPayments .ratio')];
+            const warning = document.getElementById('customPercentageWarning');
+            
+            const totalPercent = inputs.reduce((sum, input) => 
+                sum + (parseFloat(input.value) || 0), 0);
+            
+            if (totalPercent !== 100) {
+                warning.style.display = 'block';
+                inputs.forEach(input => {
+                    input.style.borderColor = '#e74c3c';
+                    input.setCustomValidity('Invalid');
+                });
+            } else {
+                warning.style.display = 'none';
+                inputs.forEach(input => {
+                    input.style.borderColor = '#ddd';
+                    input.setCustomValidity('');
+                });
+            }
+            
+            // Update amounts even if invalid
+            const totalAmount = parseFloat(document.querySelector('[name="total"]').value) || 0;
+            inputs.forEach(input => {
+                const percent = parseFloat(input.value) || 0;
+                const amount = totalAmount * percent / 100;
+                input.parentElement.querySelector('.amount').value = amount.toFixed(2);
+            });
+        }
+
+        function updatePaymentCalculations(totalAmount) {
+            const scheduleType = document.getElementById('paymentCount').value;
+            
+            if (scheduleType === '3') {
+                calculateDefaultPayments(totalAmount);
+            } else {
+                document.querySelectorAll('#customPayments input[type="text"]').forEach(input => {
+                    calculateCustomPayment(input, totalAmount);
+                });
+            }
+        }
+
+        // Update milestone display text
+        function updateMilestoneDisplay(value) {
+            document.getElementById('milestoneDisplay').textContent = value || 'at 50% project completion';
+        }
+
+        // Add these event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add event listeners for discount inputs
+            document.querySelector('[name="discountAmount"]').addEventListener('input', calculateTotals);
+            document.getElementById('discountType').addEventListener('change', calculateTotals);
+            document.getElementById('paymentMethod').addEventListener('change', calculateTotals);
+            
+            // Initial calculation
+            calculateTotal();
+        });
+
+        // Update payment calculations for default schedule
+        function updateDefaultPayments(input) {
+            const ratios = [...document.querySelectorAll('#defaultPayments .ratio')];
+            const totalPercent = ratios.reduce((sum, input) => sum + parseFloat(input.value || 0), 0);
+            
+            // Validate total percentage
+            const warning = document.getElementById('percentageWarning');
+            if (totalPercent !== 100) {
+                warning.style.display = 'block';
+                // Check if the element supports setCustomValidity before calling it
+                if (input && typeof input.setCustomValidity === 'function') {
+                    input.setCustomValidity('Invalid');
+                }
+                ratios.forEach(r => r.style.borderColor = '#e74c3c');
+            } else {
+                warning.style.display = 'none';
+                ratios.forEach(r => {
+                    if (typeof r.setCustomValidity === 'function') {
+                        r.setCustomValidity('');
+                    }
+                    r.style.borderColor = '#ddd';
+                });
+            }
+            
+            // Update amounts even if invalid, but show warning
+            const totalAmount = parseFloat(document.querySelector('[name="total"]').value) || 0;
+            ratios.forEach(input => {
+                const percent = parseFloat(input.value) || 0;
+                const amount = totalAmount * percent / 100;
+                input.parentElement.querySelector('.amount').value = amount.toFixed(2);
+            });
+        }
+
+        // Reset to original values if invalid
+        document.getElementById('paymentCount').addEventListener('change', function() {
+            if (this.value === '3') {
+                const ratios = [...document.querySelectorAll('#defaultPayments .ratio')];
+                const totalPercent = ratios.reduce((sum, input) => sum + parseFloat(input.value || 0), 0);
+                
+                if (totalPercent !== 100) {
+                    ratios.forEach(input => {
+                        // Reset to last valid input instead of original default
+                        const lastValid = parseFloat(input.dataset.original) || input.value;
+                        input.value = lastValid;
+                    });
+                    calculateTotals(); // Force recalculation with valid values
+                }
+            }
+        });
+
+        // Add this validation function
+        function validatePaymentsBeforePDF() {
+            const paymentType = document.getElementById('paymentCount').value;
+            let totalPercent = 0;
+            
+            if (paymentType === '3') {
+                const ratios = [...document.querySelectorAll('#defaultPayments .ratio')];
+                totalPercent = ratios.reduce((sum, input) => sum + parseFloat(input.value || 0), 0);
+            } else {
+                const inputs = [...document.querySelectorAll('#customPayments .ratio')];
+                totalPercent = inputs.reduce((sum, input) => sum + (parseFloat(input.value) || 0), 0);
+            }
+
+            if (totalPercent !== 100) {
+                alert('Payment percentages must total exactly 100%');
+                return false;
+            }
+            return true;
+        }
+
+        // Add these event listeners to ensure real-time updates
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update default payments when any ratio changes
+            document.querySelectorAll('#defaultPayments .ratio').forEach(input => {
+                input.addEventListener('input', function() {
+                    calculateTotals();
+                    updateDefaultPayments(parseFloat(document.querySelector('[name="total"]').value) || 0);
+                });
+            });
+
+            // Update custom payments when any ratio changes
+            document.querySelectorAll('#customPayments').forEach(container => {
+                container.addEventListener('input', function() {
+                    calculateTotals();
+                });
+            });
+        });
+
+        // Update the DOMContentLoaded event handler for loading estimate data
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if we're in edit mode - only load data if explicitly editing
+            const isEditMode = sessionStorage.getItem('isEditingEstimate') === 'true';
+            
+            if (!isEditMode) {
+                // Clear any stored data to prevent accidental loading
+                sessionStorage.removeItem('editEstimateData');
+                localStorage.removeItem('editEstimateData');
+                console.log('Creating new estimate - starting with blank form');
+                return; // Exit early - don't load any data
+            }
+            
+            // We're in edit mode, try to get edit data from both storage locations
+            let editData = null;
+            try {
+                const sessionData = sessionStorage.getItem('editEstimateData');
+                const localData = localStorage.getItem('editEstimateData');
+                
+                // Use sessionStorage data if available, otherwise try localStorage
+                if (sessionData) {
+                    editData = JSON.parse(sessionData);
+                    console.log('Loaded edit data from sessionStorage');
+                } else if (localData) {
+                    editData = JSON.parse(localData);
+                    console.log('Loaded edit data from localStorage');
+                }
+            } catch (e) {
+                console.error('Error parsing saved estimate data:', e);
+            }
+            
+            // If we have edit data, fill the form
+            if (editData) {
+                console.log('Populating form with edit data:', editData);
+                
+                // Basic fields
+                document.querySelector('[name="estimateNumber"]').value = editData.estimate_number || '';
+                document.querySelector('[name="clientName"]').value = editData.client_name || '';
+                document.querySelector('[name="clientEmail"]').value = editData.client_email || '';
+                document.querySelector('[name="clientPhone"]').value = editData.client_phone || '';
+                document.querySelector('[name="projectDescription"]').value = editData.project_description || '';
+                
+                // Address - need to parse from combined field
+                if (editData.client_address) {
+                    const addressParts = editData.client_address.split(',');
+                    if (addressParts.length >= 2) {
+                        document.querySelector('[name="clientStreet"]').value = addressParts[0].trim();
+                        
+                        // The second part might contain city and postal code
+                        const cityPostalParts = addressParts[1].trim().split(' ');
+                        if (cityPostalParts.length >= 2) {
+                            // First part is city, rest is postal code (which might be multiple words)
+                            document.querySelector('[name="clientCity"]').value = cityPostalParts[0].trim();
+                            document.querySelector('[name="clientPostal"]').value = cityPostalParts.slice(1).join(' ').trim();
+                        } else {
+                            document.querySelector('[name="clientCity"]').value = cityPostalParts[0] || '';
+                        }
+                    }
+                }
+                
+                // Separate postal code if available
+                if (editData.client_postal) {
+                    document.querySelector('[name="clientPostal"]').value = editData.client_postal;
+                }
+                
+                // Set amounts
+                if (editData.subtotal) document.querySelector('[name="subtotal"]').value = editData.subtotal;
+                if (editData.tax) document.querySelector('[name="tax"]').value = editData.tax;
+                if (editData.total) document.querySelector('[name="total"]').value = editData.total;
+                
+                // Set payment method
+                if (editData.payment_method) {
+                    document.getElementById('paymentMethod').value = editData.payment_method;
+                }
+                
+                // Set discount
+                if (editData.discount_type) {
+                    document.getElementById('discountType').value = editData.discount_type;
+                    document.querySelector('[name="discountAmount"]').value = editData.discount_amount || '0';
+                    document.querySelector('[name="afterDiscount"]').value = editData.after_discount || '0';
+                    updateDiscountInput(); // Make sure this function exists in your code
+                }
+                
+                // Load line items
+                if (editData.line_items && Array.isArray(editData.line_items)) {
+                    // Fix the line items loading code
+                    const lineItemsContainer = document.getElementById('lineItems');
+                    const templateRow = lineItemsContainer.querySelector('tr');
+                    
+                    // Clone the template row instead of manipulating the HTML directly
+                    if (templateRow) {
+                        // Clear existing rows except the template
+                        while (lineItemsContainer.children.length > 1) {
+                            lineItemsContainer.removeChild(lineItemsContainer.lastChild);
+                        }
+                        
+                        // Add rows for each line item
+                        editData.line_items.forEach(item => {
+                            // Clone the template row instead of calling addLineItem
+                            const newRow = templateRow.cloneNode(true);
+                            
+                            // Fill in the fields
+                            if (newRow) {
+                                newRow.querySelector('.item-desc').value = item.description || '';
+                                newRow.querySelector('.quantity').value = item.quantity || '';
+                                newRow.querySelector('.rate').value = item.unit_price || '';
+                                
+                                // Calculate the amount
+                                const qty = parseFloat(item.quantity) || 0;
+                                const rate = parseFloat(item.unit_price) || 0;
+                                const amount = qty * rate;
+                                
+                                // Update amount display
+                                newRow.querySelector('.item-total').textContent = amount.toFixed(2);
+                                
+                                // Add the new row to the container
+                                lineItemsContainer.appendChild(newRow);
+                            }
+                        });
+                    }
+                    
+                    // Trigger total recalculation
+                    calculateTotal();
+                }
+                
+                // Update the title
+                document.querySelector('h1').textContent = 'Edit Estimate';
+                document.querySelector('button[type="submit"]').textContent = 'Update Estimate';
+                
+                // Clear the edit mode flag and stored data
+                sessionStorage.removeItem('isEditingEstimate');
+                sessionStorage.removeItem('editEstimateData');
+                localStorage.removeItem('editEstimateData');
+            }
         });
     </script>
 </body>

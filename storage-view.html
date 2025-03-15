@@ -356,19 +356,52 @@
     // Edit estimate function
     async function editEstimate(id) {
         try {
+            // Show loading indication
+            const editButton = document.querySelector(`button[onclick="editEstimate('${id}')"]`);
+            if (editButton) {
+                editButton.disabled = true;
+                editButton.textContent = 'Loading...';
+            }
+            
+            console.log(`Loading estimate with ID: ${id} for editing`);
+            
+            // Fetch complete estimate data with all fields
             const { data: estimate, error } = await supabase
                 .from('estimates')
                 .select('*')
                 .eq('id', id)
                 .single();
 
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase error:', error);
+                throw error;
+            }
             
+            if (!estimate) {
+                throw new Error('Estimate not found');
+            }
+            
+            console.log('Retrieved estimate data:', estimate);
+            
+            // Save to both sessionStorage and localStorage for redundancy
             sessionStorage.setItem('editEstimateData', JSON.stringify(estimate));
+            localStorage.setItem('editEstimateData', JSON.stringify(estimate));
+            
+            // Set a flag to indicate we're in edit mode
+            sessionStorage.setItem('isEditingEstimate', 'true');
+            
+            // Redirect to the form page
             window.location.href = 'estimate-form.html';
         } catch (error) {
             console.error('Error loading estimate for edit:', error);
-            alert('Failed to load estimate for editing. Please try again.');
+            alert('Failed to load estimate for editing: ' + error.message);
+            
+            // Reset button state
+            const editButton = document.querySelector(`button[onclick="editEstimate('${id}')"]`);
+            if (editButton) {
+                editButton.disabled = false;
+                editButton.textContent = 'Edit';
+            }
         }
     }
 
@@ -414,47 +447,117 @@
         }
     }
 
+    // Fix complete deletion from Supabase
     async function deleteEstimate(id) {
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        const errorMessage = document.getElementById('errorMessage');
+        if (!id) {
+            console.error('No estimate ID provided for deletion');
+            return;
+        }
+        
+        // Confirm deletion with user
+        if (!confirm('Are you sure you want to delete this estimate? This action cannot be undone.')) {
+            return;
+        }
         
         try {
-            if (!confirm('Permanently delete this estimate?\nThis action cannot be undone.')) return;
-            
-            loadingIndicator.style.display = 'block';
-            errorMessage.style.display = 'none';
-            const tbody = document.getElementById('storageData');
-
-            // Immediate visual feedback
-            const deletedRow = document.querySelector(`tr[data-id="${id}"]`);
-            if (deletedRow) {
-                deletedRow.classList.add('disabled-row');
+            // Show loading state and disable the delete button
+            const deleteButton = document.querySelector(`button[onclick="deleteEstimate('${id}')"]`);
+            if (deleteButton) {
+                deleteButton.disabled = true;
+                deleteButton.textContent = 'Deleting...';
             }
-
-            // Perform deletion
+            
+            // Mark row as being deleted
+            const estimateRow = document.querySelector(`tr[data-id="${id}"]`);
+            if (estimateRow) {
+                estimateRow.classList.add('disabled-row');
+            }
+            
+            // Get the estimate number for logging purposes
+            const estimateNumber = estimateRow?.querySelector('td:nth-child(2)')?.textContent;
+            console.log(`Attempting to delete estimate ${estimateNumber} (ID: ${id})`);
+            
+            // Perform deletion with hard delete (no .select to avoid RLS issues)
             const { error } = await supabase
                 .from('estimates')
                 .delete()
-                .eq('id', id)
-                .select('*');  // Add select to get confirmation
-
-            if (error) throw error;
-
-            // Full reload instead of optimistic update
-            tbody.innerHTML = ''; // Clear current data
-            await loadStorageData();
-
-        } catch (error) {
-            console.error('Delete Error:', error);
-            errorMessage.textContent = `Deletion failed: ${error.message}`;
-            errorMessage.style.display = 'block';
-            
-            // Revert visual state
-            if (deletedRow) {
-                deletedRow.classList.remove('disabled-row');
+                .eq('id', id);
+                
+            if (error) {
+                console.error('Error deleting estimate:', error);
+                alert('Failed to delete estimate: ' + error.message);
+                
+                // Reset visual state
+                if (deleteButton) {
+                    deleteButton.disabled = false;
+                    deleteButton.textContent = 'Delete';
+                }
+                if (estimateRow) {
+                    estimateRow.classList.remove('disabled-row');
+                }
+                return;
             }
-        } finally {
-            loadingIndicator.style.display = 'none';
+            
+            // Double-check deletion succeeded by querying for the record
+            const { data: checkData } = await supabase
+                .from('estimates')
+                .select('id')
+                .eq('id', id)
+                .maybeSingle();
+                
+            if (checkData) {
+                console.error('Deletion appeared to succeed but record still exists');
+                alert('Delete operation did not remove the record. Please try again or contact support.');
+                
+                // Reset visual state
+                if (deleteButton) {
+                    deleteButton.disabled = false;
+                    deleteButton.textContent = 'Delete';
+                }
+                if (estimateRow) {
+                    estimateRow.classList.remove('disabled-row');
+                }
+                return;
+            }
+            
+            console.log(`Successfully deleted estimate ${estimateNumber} (ID: ${id})`);
+            
+            // Remove the row with animation
+            if (estimateRow) {
+                estimateRow.style.transition = 'opacity 0.3s';
+                estimateRow.style.opacity = '0';
+                setTimeout(() => {
+                    estimateRow.remove();
+                    
+                    // Show "no estimates" message if all estimates are deleted
+                    const tableBody = document.getElementById('storageData');
+                    if (tableBody && !tableBody.querySelector('tr:not(.empty-message)')) {
+                        tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No estimates found</td></tr>';
+                    }
+                }, 300);
+            } else {
+                // If we can't find the row, reload the data
+                await loadStorageData();
+            }
+            
+            alert('Estimate deleted successfully');
+            
+        } catch (err) {
+            console.error('Unexpected error during deletion:', err);
+            alert('An unexpected error occurred. Please try again: ' + err.message);
+            
+            // Reset button state
+            const deleteButton = document.querySelector(`button[onclick="deleteEstimate('${id}')"]`);
+            if (deleteButton) {
+                deleteButton.disabled = false;
+                deleteButton.textContent = 'Delete';
+            }
+            
+            // Reset row state
+            const estimateRow = document.querySelector(`tr[data-id="${id}"]`);
+            if (estimateRow) {
+                estimateRow.classList.remove('disabled-row');
+            }
         }
     }
     </script>

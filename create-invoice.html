@@ -116,6 +116,35 @@
         .fetch-btn:hover {
             background: #2980b9;
         }
+        .estimate-summary {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .estimate-summary p {
+            margin: 8px 0;
+        }
+        .estimate-summary ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .payment-schedule {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .payment-item {
+            display: grid;
+            grid-template-columns: 80px 1fr auto;
+            gap: 15px;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .payment-item:last-child {
+            border-bottom: none;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -132,25 +161,18 @@
 
         <form id="invoiceForm">
             <div class="form-section">
-                <h2 class="section-title">Invoice Details</h2>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Invoice Number:</label>
-                        <input type="text" name="invoiceNumber" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label>Estimate Number:</label>
-                        <div class="estimate-input-group">
-                            <input type="text" name="estimateNumber" placeholder="Enter estimate number">
-                            <button type="button" onclick="fetchEstimateData()" class="fetch-btn">
-                                Fetch Data
-                            </button>
-                        </div>
+                <h2 class="section-title">Linked Estimate</h2>
+                <div class="form-group">
+                    <label>Estimate Number:</label>
+                    <div class="estimate-input-group">
+                        <input type="text" name="estimateNumber" placeholder="Enter estimate number">
+                        <button type="button" onclick="fetchEstimateData()" class="fetch-btn">
+                            <i class="fas fa-download"></i> Load Estimate
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Client Information -->
             <div class="form-section">
                 <h2 class="section-title">Client Information</h2>
                 <div class="form-row">
@@ -191,7 +213,6 @@
                 </div>
             </div>
 
-            <!-- Line Items -->
             <div class="form-section">
                 <h2 class="section-title">Cost Breakdown</h2>
                 <div class="form-group">
@@ -250,38 +271,108 @@
                 </div>
             </div>
 
+            <div class="form-section">
+                <h2 class="section-title">Payment Schedule</h2>
+                <div class="form-group">
+                    <label>Payment Structure:</label>
+                    <select id="paymentCount" class="modern-select" onchange="updatePaymentSchedule()">
+                        <option value="3">Default 3 Payments</option>
+                        <option value="custom">Custom Payments</option>
+                    </select>
+                </div>
+
+                <div id="defaultPayments">
+                    <div class="payment-group">
+                        <h4>Payment 1</h4>
+                        <div class="payment-row">
+                            <input type="number" class="ratio" value="20" min="0" max="100" 
+                                   oninput="updatePaymentCalculations()">
+                            <span>%</span>
+                            <input type="number" class="amount" readonly>
+                            <input type="text" class="description" 
+                                   value="upon signing contract" placeholder="Payment description">
+                        </div>
+                    </div>
+                    <div class="payment-group">
+                        <h4>Payment 2</h4>
+                        <div class="payment-row">
+                            <input type="number" class="ratio" value="30" min="0" max="100" 
+                                   oninput="updatePaymentCalculations()">
+                            <span>%</span>
+                            <input type="number" class="amount" readonly>
+                            <input type="text" class="description" 
+                                   value="at 50% project completion" placeholder="Payment description">
+                        </div>
+                    </div>
+                    <div class="payment-group">
+                        <h4>Payment 3</h4>
+                        <div class="payment-row">
+                            <input type="number" class="ratio" value="50" min="0" max="100" 
+                                   oninput="updatePaymentCalculations()">
+                            <span>%</span>
+                            <input type="number" class="amount" readonly>
+                            <input type="text" class="description" 
+                                   value="upon project completion" placeholder="Payment description">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="customPayments" style="display: none;">
+                    <div id="customPercentageWarning" class="warning" style="display: none;">
+                        ⚠️ Total percentages must add up to exactly 100%
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2 class="section-title">Invoice Details</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Invoice Number:</label>
+                        <input type="text" name="invoiceNumber" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Due Date:</label>
+                        <input type="date" name="dueDate" required>
+                    </div>
+                </div>
+            </div>
+
             <button type="submit" class="submit-btn">Generate Invoice</button>
         </form>
     </div>
 
+    <!-- Add a warning display div -->
+    <div id="paymentWarning" class="warning" style="display: none; margin: 15px 0; padding: 10px; background: #fff3cd; border-radius: 4px;">
+        ⚠️ Please ensure:
+        <ul style="margin: 5px 0 0 20px;">
+            <li>All percentages are between 0-100</li>
+            <li>Total equals exactly 100%</li>
+        </ul>
+    </div>
+
     <script>
-        // Initialize Supabase client
         const supabaseUrl = 'https://nhcttofusmnzlertxjkq.supabase.co'
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oY3R0b2Z1c21uemxlcnR4amtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI5NDA2MDYsImV4cCI6MjA0ODUxNjYwNn0.WA6rQWC5ISi5QiWOKbdf3wwrysBSMhEq5Lt_HXEDqEU'
         const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey)
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Generate invoice number
             generateInvoiceNumber();
             
-            // Check for estimate data
             const estimateData = JSON.parse(sessionStorage.getItem('invoiceFromEstimate'));
             if (estimateData) {
                 populateFormFromEstimate(estimateData);
             }
 
-            // Check for edit data
             const editData = sessionStorage.getItem('editEstimateData');
             if (editData) {
                 const estimate = JSON.parse(editData);
                 
-                // Fill in form fields
                 document.querySelector('[name="estimateNumber"]').value = estimate.estimate_number;
                 document.querySelector('[name="clientName"]').value = estimate.client_name;
                 document.querySelector('[name="clientEmail"]').value = estimate.client_email;
                 document.querySelector('[name="clientPhone"]').value = estimate.client_phone;
                 
-                // Split address back into parts
                 const [street, city] = estimate.client_address.split(', ');
                 document.querySelector('[name="clientStreet"]').value = street;
                 document.querySelector('[name="clientCity"]').value = city;
@@ -289,7 +380,6 @@
                 document.querySelector('[name="projectDescription"]').value = estimate.project_description;
                 document.getElementById('paymentMethod').value = estimate.payment_method;
                 
-                // Add line items
                 estimate.line_items.forEach(item => {
                     const lineItem = document.createElement('div');
                     lineItem.className = 'line-item';
@@ -303,14 +393,27 @@
                     document.getElementById('lineItems').appendChild(lineItem);
                 });
                 
-                // Update totals
                 document.querySelector('[name="subtotal"]').value = estimate.subtotal;
                 document.querySelector('[name="tax"]').value = estimate.tax;
                 document.querySelector('[name="total"]').value = estimate.total;
                 
-                // Clear the stored data
                 sessionStorage.removeItem('editEstimateData');
             }
+
+            document.querySelectorAll('[name="total"], [name="discountAmount"]').forEach(input => {
+                input.addEventListener('input', () => {
+                    const totalAmount = parseFloat(document.querySelector('[name="total"]').value) || 0;
+                    updatePaymentCalculations(totalAmount);
+                });
+            });
+
+            document.querySelectorAll('.ratio').forEach(input => {
+                input.addEventListener('input', () => {
+                    const totalAmount = parseFloat(document.querySelector('[name="total"]').value) || 0;
+                    updatePaymentCalculations(totalAmount);
+                    validatePaymentsBeforePDF();
+                });
+            });
         });
 
         function generateInvoiceNumber() {
@@ -323,41 +426,105 @@
         }
 
         function populateFormFromEstimate(data) {
-            // Set estimate number
             document.querySelector('[name="estimateNumber"]').value = data.estimateNumber;
 
-            // Populate client info
-            // Add your code to populate client information
+            document.querySelector('[name="clientName"]').value = data.client_name;
+            document.querySelector('[name="clientEmail"]').value = data.client_email;
+            document.querySelector('[name="clientPhone"]').value = data.client_phone;
+            
+            const [street, cityAndPostal] = data.client_address.split(', ');
+            const [city, postal] = cityAndPostal.split(' ');
+            document.querySelector('[name="clientStreet"]').value = street;
+            document.querySelector('[name="clientCity"]').value = city;
+            document.querySelector('[name="clientPostal"]').value = postal || '';
+            
+            document.querySelector('[name="projectDescription"]').value = data.project_description;
+            document.getElementById('paymentMethod').value = data.payment_method;
+            
+            const lineItemsContainer = document.getElementById('lineItems');
+            while (lineItemsContainer.children.length > 1) {
+                lineItemsContainer.removeChild(lineItemsContainer.lastChild);
+            }
 
-            // Populate line items
-            // Add your code to populate line items
-
-            // Set totals
+            data.line_items.forEach(item => {
+                const lineItem = document.createElement('div');
+                lineItem.className = 'line-item';
+                lineItem.innerHTML = `
+                    <input type="text" name="description[]" value="${item.description}" required>
+                    <input type="number" name="quantity[]" value="${item.quantity}" required>
+                    <input type="number" name="unitPrice[]" value="${item.unit_price}" required>
+                    <input type="number" name="amount[]" value="${item.amount}" readonly>
+                    <button type="button" class="remove-item" onclick="this.parentElement.remove(); calculateTotals();">×</button>
+                `;
+                lineItemsContainer.appendChild(lineItem);
+            });
+            
             document.querySelector('[name="subtotal"]').value = data.subtotal;
+            updateDiscountInput();
             document.querySelector('[name="tax"]').value = data.tax;
             document.querySelector('[name="total"]').value = data.total;
+
+            updateTaxCalculation();
         }
 
         function goBack() {
             window.location.href = 'admin-dashboard.html';
         }
 
-        // Form submission handler
-        document.getElementById('invoiceForm').addEventListener('submit', function(e) {
+        document.getElementById('invoiceForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const submitButton = this.querySelector('button[type="submit"]');
-            submitButton.disabled = true;
-            submitButton.textContent = 'Generating...';
             
             try {
+                // Validate form before generation
+                if (!validateForm()) return;
+                if (!validatePaymentsBeforePDF()) return;
+
+                const submitButton = e.target.querySelector('button[type="submit"]');
+                submitButton.disabled = true;
+                submitButton.textContent = 'Generating...';
+
                 // Create PDF
                 window.jsPDF = window.jspdf.jsPDF;
-                const doc = new window.jsPDF();
+                const doc = new window.jsPDF({
+                    unit: 'mm',
+                    format: 'a4',
+                    compress: true,
+                    lineHeight: 1.4
+                });
+                
+                // Add page footer to all pages
+                const addFooter = function() {
+                    // Position footer at bottom of page
+                    doc.setFontSize(9);
+                    doc.setTextColor(100, 100, 100);
+                    doc.text('Thank you for choosing Elite Renovation Works!', 
+                        doc.internal.pageSize.width/2, 
+                        doc.internal.pageSize.height - 10, 
+                        { align: 'center', fontSize: 9 }
+                    );
+                };
+
+                // Add footer to first page and set up for future pages
+                addFooter();
+
+                // Hook into internal API to add footer to each new page
+                const originalAddPage = doc.addPage;
+                doc.addPage = function() {
+                    originalAddPage.apply(this, arguments);
+                    addFooter();
+                    return this;
+                };
+                
+                // Set consistent font
+                doc.setFont('helvetica');
+                doc.setFontSize(11);
                 
                 // Add company logo
-                const img = new Image();
-                img.src = 'https://i.ibb.co/M58mL0J/transparent-elite-home.png';
+                const logoUrl = 'https://i.ibb.co/M58mL0J/transparent-elite-home.png';
                 
+                // Load and add logo
+                const img = new Image();
+                img.src = logoUrl;
                 img.onload = function() {
                     // Add logo with proper scaling
                     const imgWidth = 70;
@@ -368,7 +535,6 @@
                     doc.setFontSize(20);
                     doc.setTextColor(44, 62, 80);  // Dark blue color
                     doc.text('INVOICE', doc.internal.pageSize.width/2, 20, { align: 'center' });
-                    doc.setTextColor(0, 0, 0);  // Reset to black
                     
                     // Add company info in top right
                     doc.setFontSize(9);
@@ -378,7 +544,8 @@
                         'Representative: Jay',
                         'Phone: 647-563-1314',
                         'Email: jay@eliterenovationworks.ca',
-                        document.getElementById('paymentMethod').value !== 'cash' ? 'GST/HST: 743299224RT0001' : ''
+                        ...(document.getElementById('paymentMethod').value !== 'cash' ? 
+                            ['GST/HST: 743299224RT0001'] : [])
                     ], doc.internal.pageSize.width - 15, 25, { 
                         align: 'right',
                         lineHeightFactor: 1.5
@@ -387,84 +554,55 @@
                     // Add invoice details with smaller font
                     doc.setFontSize(10);
                     doc.text('Invoice #: ' + document.querySelector('[name="invoiceNumber"]').value, 15, imgHeight + 25);
-                    doc.text('Estimate #: ' + document.querySelector('[name="estimateNumber"]').value, 15, imgHeight + 32);
+                    doc.text('Estimate #: ' + document.querySelector('[name="estimateNumber"]').value, 15, imgHeight + 35);
                     doc.text('Date: ' + new Date().toLocaleDateString(), doc.internal.pageSize.width - 15, imgHeight + 25, { align: 'right' });
 
                     // Add separator line
                     doc.setDrawColor(44, 62, 80);
                     doc.setLineWidth(0.5);
-                    doc.line(15, imgHeight + 35, doc.internal.pageSize.width - 15, imgHeight + 35);
+                    doc.line(15, imgHeight + 45, doc.internal.pageSize.width - 15, imgHeight + 45);
 
                     // Add client info with optimized spacing
                     doc.setFontSize(11);
-                    doc.text('Client Details:', 15, imgHeight + 40);
+                    doc.text('Client Details:', 15, imgHeight + 55);
                     doc.setFontSize(10);
-                    // Two-column layout for client info
                     doc.text([
                         'Name: ' + document.querySelector('[name="clientName"]').value,
                         'Email: ' + document.querySelector('[name="clientEmail"]').value
-                    ], 20, imgHeight + 48);
+                    ], 20, imgHeight + 65);
                     doc.text([
                         'Phone: ' + document.querySelector('[name="clientPhone"]').value,
                         'Address: ' + document.querySelector('[name="clientStreet"]').value + ', ' + 
                         document.querySelector('[name="clientCity"]').value + ' ' +
                         document.querySelector('[name="clientPostal"]').value
-                    ], doc.internal.pageSize.width/2, imgHeight + 48);
-
-                    // Add project description more compactly
-                    doc.text('Project: ' + document.querySelector('[name="projectDescription"]').value, 20, imgHeight + 60);
-
-                    // Add line items table with adjusted starting position
-                    const paymentMethodSelect = document.getElementById('paymentMethod');
-                    const paymentMethodText = paymentMethodSelect.options[paymentMethodSelect.selectedIndex].text;
-
-                    // Calculate payment amounts
-                    const totalAmount = parseFloat(document.querySelector('[name="total"]').value);
-                    const firstPayment = Math.round(totalAmount / 3);
-                    const secondPayment = Math.round(totalAmount / 3);
-                    const finalPayment = totalAmount - firstPayment - secondPayment;
+                    ], doc.internal.pageSize.width/2, imgHeight + 65);
+              
+                    // Update table position
+                    const lineItems = Array.from(document.querySelectorAll('.line-item:not(:first-child)')).map(row => [
+                        row.querySelector('[name="description[]"]')?.value || '',
+                        row.querySelector('[name="quantity[]"]')?.value || '0',
+                        `$${parseFloat(row.querySelector('[name="unitPrice[]"]')?.value || 0).toFixed(2)}`,
+                        `$${parseFloat(row.querySelector('[name="amount[]"]')?.value || 0).toFixed(2)}`
+                    ]);
 
                     doc.autoTable({
-                        startY: imgHeight + 70,
+                        startY: imgHeight + 80,
                         head: [['Description', 'Quantity', 'Unit Price', 'Amount']],
-                        body: [...document.querySelectorAll('.line-item')].slice(1).map(item => [
-                            item.querySelector('[name="description[]"]').value,
-                            item.querySelector('[name="quantity[]"]').value,
-                            { content: '$' + item.querySelector('[name="unitPrice[]"]').value, styles: { halign: 'right' } },
-                            { content: '$' + item.querySelector('[name="amount[]"]').value, styles: { halign: 'right' } }
-                        ]),
+                        body: lineItems,
                         foot: [
-                            [
-                                { content: 'Payment Method: ' + paymentMethodText, styles: { fontSize: 8 } },
-                                '', 
-                                { content: 'Subtotal:', styles: { cellPadding: { top: 0, bottom: 0 }, halign: 'right' } }, 
-                                { content: '$' + document.querySelector('[name="subtotal"]').value, styles: { cellPadding: { top: 0, bottom: 0 }, halign: 'right' } }
-                            ],
-                            ...(document.getElementById('discountType').value !== 'none' ? [
-                                ['', '', 
-                                { content: document.getElementById('discountType').value === 'percentage' ? 
-                                    `Discount (${document.querySelector('[name="discountAmount"]').value}%):` : 
-                                    'Discount:', 
-                                    styles: { cellPadding: { top: 0, bottom: 0 }, halign: 'right' }
-                                }, 
-                                { content: '-$' + (document.querySelector('[name="subtotal"]').value - 
-                                    document.querySelector('[name="afterDiscount"]').value).toFixed(2), 
-                                    styles: { cellPadding: { top: 0, bottom: 0 }, halign: 'right' }
-                                }],
-                                ['', '', 
-                                { content: 'After Discount:', styles: { cellPadding: { top: 0, bottom: 0 }, halign: 'right' } }, 
-                                { content: '$' + document.querySelector('[name="afterDiscount"]').value, 
-                                    styles: { cellPadding: { top: 0, bottom: 0 }, halign: 'right' }
-                                }]
-                            ] : []),
-                            ['', '', 
-                            { content: 'Tax (13%):', styles: { cellPadding: { top: 0, bottom: 0 }, halign: 'right' } }, 
-                            { content: '$' + document.querySelector('[name="tax"]').value, styles: { cellPadding: { top: 0, bottom: 0 }, halign: 'right' } }],
-                            ['', '', 
-                            { content: 'Total:', styles: { cellPadding: { top: 0, bottom: 0 }, halign: 'right', fontStyle: 'bold' } }, 
-                            { content: '$' + document.querySelector('[name="total"]').value, 
-                                styles: { cellPadding: { top: 0, bottom: 0 }, halign: 'right', fontStyle: 'bold' }
-                            }]
+                            ['', '', 'Subtotal:', '$' + document.querySelector('[name="subtotal"]').value],
+                            ...(document.getElementById('discountType').value !== 'none' ? 
+                                [['', '', `Discount ${document.getElementById('discountType').value === 'percentage' ? 
+                                    '(' + document.querySelector('[name="discountAmount"]').value + '%)' : ''}:`, 
+                                    '-$' + (document.querySelector('[name="subtotal"]').value - 
+                                        document.querySelector('[name="afterDiscount"]').value).toFixed(2)]] : 
+                                []),
+                            ...(document.getElementById('discountType').value !== 'none' ? 
+                                [['', '', 'After Discount:', '$' + document.querySelector('[name="afterDiscount"]').value]] : 
+                                []),
+                            ...(document.getElementById('paymentMethod').value === 'regular' ? 
+                                [['', '', 'Tax (13%):', '$' + document.querySelector('[name="tax"]').value]] : []),
+                            ['', '', 'Total:', '$' + document.querySelector('[name="total"]').value]
                         ],
                         theme: 'grid',
                         headStyles: { 
@@ -480,65 +618,131 @@
                         },
                         footStyles: { 
                             fillColor: [249, 249, 249],
-                            fontSize: 9,
+                            fontSize: 10,
                             fontStyle: 'bold',
-                            halign: (cell, row) => row.index === 0 && cell.index === 0 ? 'left' : 'right',
+                            halign: 'right',
                             textColor: [44, 62, 80]
                         },
                         columnStyles: {
                             0: { cellWidth: 'auto' },
                             1: { cellWidth: 30, halign: 'center' },
-                            2: { cellWidth: 50, halign: 'right' },
-                            3: { cellWidth: 30, halign: 'right' }
+                            2: { cellWidth: 40, halign: 'right' },
+                            3: { cellWidth: 40, halign: 'right' }
                         }
                     });
 
-                    // Add payment schedule and disclaimer after the table
-                    const finalY = doc.lastAutoTable.finalY + 5;
-                    doc.setFontSize(9);
+                    // Add payment info with the same structure as estimate form
+                    let finalY = doc.lastAutoTable.finalY + 15;
+                    doc.setFontSize(10);
+                    doc.setTextColor(44, 62, 80); // Dark blue-grey
+                    doc.setFont(undefined, 'normal');
+                    doc.text("Payment Method:", 20, finalY);
+                    doc.setTextColor(0, 0, 0); // Black
+                    doc.text(document.getElementById('paymentMethod').options[document.getElementById('paymentMethod').selectedIndex].text, 50, finalY);
+                    finalY += 5;
+
+                    // Add spacing before payment schedule
+                    finalY += 8;
+                    doc.setFont(undefined, 'normal');
+                    doc.setTextColor(44, 62, 80); // Dark blue-grey
+                    doc.text("Payment Schedule:", 20, finalY);
+                    finalY += 5;
+
+                    // Payment schedule items
+                    let currentY = finalY;
+                    let paymentSchedule = [];
+
+                    if (document.getElementById('paymentCount').value === '3') {
+                        // Default payments
+                        paymentSchedule = Array.from(document.querySelectorAll('#defaultPayments .payment-group')).map(group => ({
+                            percent: group.querySelector('.ratio').value + '%',
+                            amount: parseFloat(group.querySelector('.amount').value).toLocaleString('en-US', {
+                                style: 'currency',
+                                currency: 'USD'
+                            }),
+                            description: group.querySelector('.description').value
+                        }));
+                    } else {
+                        // Custom payments
+                        paymentSchedule = Array.from(document.querySelectorAll('#customPayments .payment-group')).map(group => ({
+                            percent: group.querySelector('.ratio').value + '%',
+                            amount: parseFloat(group.querySelector('.amount').value).toLocaleString('en-US', {
+                                style: 'currency',
+                                currency: 'USD'
+                            }),
+                            description: group.querySelector('.description').value
+                        }));
+                    }
+
+                    paymentSchedule.forEach((payment, index) => {
+                        doc.setFontSize(9);
+                        doc.setTextColor(0, 0, 0); // Black text
+                        
+                        // Payment number and percentage
+                        doc.setFont(undefined, 'normal');
+                        doc.text(`• Payment ${index + 1} (${payment.percent})`, 20, currentY);
+                        
+                        // Amount
+                        doc.text(payment.amount, 70, currentY);
+                        
+                        // Description
+                        const descLines = doc.splitTextToSize(payment.description || '', 160); // Increased width
+                        doc.text(descLines, 22, currentY + 4);
+                        
+                        currentY += (descLines.length * 4) + 8; // Tighter spacing
+                    });
+
+                    // Add project description on page 2
+                    doc.addPage();
+                    doc.setFontSize(14);
+                    doc.setTextColor(44, 62, 80);
+                    doc.text('Project Details', 15, 20);
+
+                    // Add project description with word wrapping
+                    doc.setFontSize(10);
+                    const projectDesc = document.querySelector('[name="projectDescription"]').value;
+                    const splitDesc = doc.splitTextToSize(projectDesc, doc.internal.pageSize.width - 30);
+                    doc.text(splitDesc, 15, 35);
+
+                    // Client Authorization section (page 3)
+                    doc.addPage();
+                    doc.setFontSize(14);
+                    doc.setTextColor(44, 62, 80);
+                    doc.text('Client Authorization', 15, 20);
                     
-                    // Payment schedule on the left
-                    doc.text([
-                        'Payment Schedule:',
-                        `• First Payment: $${firstPayment.toFixed(2)} (Due upon signing)`,
-                        `• Second Payment: $${secondPayment.toFixed(2)} (Due at 50% completion)`,
-                        `• Final Payment: $${finalPayment.toFixed(2)} (Due upon completion)`
-                    ], 15, finalY, { lineHeightFactor: 1.3 });
-                    
-                    // Disclaimer on the right in red
-                    doc.setTextColor(231, 76, 60);
-                    doc.text([
-                        'Important Notes:',
-                        '* All payments due within 5 business days',
-                        '* Work begins after first payment',
-                        '* Price subject to scope changes'
-                    ], doc.internal.pageSize.width/2 + 20, finalY, { lineHeightFactor: 1.3 });
+                    doc.setFontSize(10);
                     doc.setTextColor(0, 0, 0);
+                    doc.text('I hereby approve the work completed and agree to the payment terms:', 15, 35);
                     
-                    // Add signature sections
-                    const signatureY = finalY + 15;
-                    doc.setDrawColor(100, 100, 100);
+                    // Signature Lines
+                    doc.setDrawColor(200, 200, 200);
                     doc.setLineWidth(0.5);
+                    doc.line(15, 50, 80, 50);
+                    doc.text('Print Name', 15, 55);
                     
-                    // Client signature section with reduced spacing
-                    doc.text('Client Authorization', 15, signatureY + 10);
-                    doc.text('Print Name:', 15, signatureY + 20);
-                    doc.text('_____________________________', 35, signatureY + 20);
-                    doc.text('Signature:', 15, signatureY + 35);
-                    doc.text('X', 32, signatureY + 35);
-                    doc.text('_____________________________', 35, signatureY + 35);
-                    doc.text('Date:', 15, signatureY + 50);
-                    doc.text('_____________________________', 35, signatureY + 50);
+                    doc.line(15, 70, 80, 70);
+                    doc.text('Signature', 15, 75);
                     
-                    // Representative signature section with same spacing
-                    doc.text('Representative Authorization', doc.internal.pageSize.width/2 + 15, signatureY + 10);
-                    doc.text('Print Name:', doc.internal.pageSize.width/2 + 15, signatureY + 20);
-                    doc.text('_____________________________', doc.internal.pageSize.width/2 + 35, signatureY + 20);
-                    doc.text('Signature:', doc.internal.pageSize.width/2 + 15, signatureY + 35);
-                    doc.text('X', doc.internal.pageSize.width/2 + 32, signatureY + 35);
-                    doc.text('_____________________________', doc.internal.pageSize.width/2 + 35, signatureY + 35);
-                    doc.text('Date:', doc.internal.pageSize.width/2 + 15, signatureY + 50);
-                    doc.text('_____________________________', doc.internal.pageSize.width/2 + 35, signatureY + 50);
+                    doc.line(15, 90, 50, 90);
+                    doc.text('Date', 15, 95);
+                    
+                    // Contractor section
+                    doc.setFontSize(14);
+                    doc.setTextColor(44, 62, 80);
+                    doc.text('Contractor Approval', 15, 120);
+                    
+                    doc.setFontSize(10);
+                    doc.setTextColor(0, 0, 0);
+                    doc.text('Work completed to professional standards:', 15, 135);
+                    
+                    doc.line(15, 150, 80, 150);
+                    doc.text('Jay Ye', 15, 155);
+                    
+                    doc.line(15, 170, 80, 170);
+                    doc.text('Signature', 15, 175);
+                    
+                    doc.line(15, 190, 50, 190);
+                    doc.text('Date', 15, 195);
 
                     // Save PDF
                     doc.save(`invoice-${document.querySelector('[name="invoiceNumber"]').value}.pdf`);
@@ -546,115 +750,54 @@
                 };
                 
                 img.onerror = function() {
-                    throw new Error('Failed to load company logo');
+                    alert('Error loading company logo');
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Generate Invoice';
                 };
             } catch (error) {
                 console.error('Error:', error);
-                alert('Failed to generate invoice. Please try again.');
-            } finally {
+                alert('Failed to generate invoice: ' + error.message);
                 submitButton.disabled = false;
                 submitButton.textContent = 'Generate Invoice';
             }
         });
 
-        async function fetchEstimateData() {
-            const estimateNumber = document.querySelector('[name="estimateNumber"]').value;
-            if (!estimateNumber) {
-                alert('Please enter an estimate number');
-                return;
+        // Enhanced form validation
+        function validateForm() {
+            const requiredFields = [
+                'clientName', 'clientEmail', 'clientPhone',
+                'clientStreet', 'clientCity', 'projectDescription'
+            ];
+
+            for (const field of requiredFields) {
+                const element = document.querySelector(`[name="${field}"]`);
+                if (!element?.value?.trim()) {
+                    alert(`Please fill in the ${field.replace('client', '').toLowerCase()} field`);
+                    element?.focus();
+                    return false;
+                }
             }
 
-            try {
-                const { data: estimates, error } = await supabaseClient
-                    .from('estimates')
-                    .select('*')
-                    .eq('estimate_number', estimateNumber)
-                    .order('created_at', { ascending: false })
-                    .limit(1)
-                    .single();
-
-                if (error) {
-                    if (error.code === 'PGRST116') {
-                        alert('No estimate found with this number');
-                        return;
-                    }
-                    throw error;
-                }
-
-                if (!estimates) {
-                    alert('No estimate found with this number');
-                    return;
-                }
-
-                // Fill in form fields
-                document.querySelector('[name="clientName"]').value = estimates.client_name;
-                document.querySelector('[name="clientEmail"]').value = estimates.client_email;
-                document.querySelector('[name="clientPhone"]').value = estimates.client_phone;
-                
-                // Split address back into parts
-                const [street, cityAndPostal] = estimates.client_address.split(', ');
-                const [city, postal] = cityAndPostal.split(' ');
-                document.querySelector('[name="clientStreet"]').value = street;
-                document.querySelector('[name="clientCity"]').value = city;
-                document.querySelector('[name="clientPostal"]').value = postal || '';
-                
-                // Set discount information if exists
-                if (estimates.discount_type) {
-                    document.getElementById('discountType').value = estimates.discount_type;
-                    document.querySelector('[name="discountAmount"]').value = estimates.discount_amount || 0;
-                    document.querySelector('[name="afterDiscount"]').value = estimates.after_discount || 0;
-                    // Show discount row if there's a discount
-                    document.getElementById('discountRow').style.display = estimates.discount_type !== 'none' ? 'block' : 'none';
-                }
-
-                document.querySelector('[name="projectDescription"]').value = estimates.project_description;
-                document.getElementById('paymentMethod').value = estimates.payment_method;
-                
-                // Clear existing line items except header
-                const lineItemsContainer = document.getElementById('lineItems');
-                while (lineItemsContainer.children.length > 1) {
-                    lineItemsContainer.removeChild(lineItemsContainer.lastChild);
-                }
-
-                // Add line items
-                estimates.line_items.forEach(item => {
-                    const lineItem = document.createElement('div');
-                    lineItem.className = 'line-item';
-                    lineItem.innerHTML = `
-                        <input type="text" name="description[]" value="${item.description}" required>
-                        <input type="number" name="quantity[]" value="${item.quantity}" required>
-                        <input type="number" name="unitPrice[]" value="${item.unit_price}" required>
-                        <input type="number" name="amount[]" value="${item.amount}" readonly>
-                        <button type="button" class="remove-item" onclick="this.parentElement.remove(); calculateTotals();">×</button>
-                    `;
-                    lineItemsContainer.appendChild(lineItem);
-                });
-                
-                // Update totals
-                document.querySelector('[name="subtotal"]').value = estimates.subtotal;
-                // Update discount display and calculations
-                updateDiscountInput();
-                document.querySelector('[name="tax"]').value = estimates.tax;
-                document.querySelector('[name="total"]').value = estimates.total;
-
-                // Update tax display based on payment method
-                updateTaxCalculation();
-
-            } catch (error) {
-                console.error('Error fetching estimate:', error);
-                alert('Failed to fetch estimate data');
+            const total = parseFloat(document.querySelector('[name="total"]')?.value) || 0;
+            if (total <= 0) {
+                alert('Total amount must be greater than $0');
+                return false;
             }
+
+            return true;
         }
 
-        // Add tax calculation function
         function updateTaxCalculation() {
             const paymentMethod = document.getElementById('paymentMethod').value;
             const taxSection = document.querySelector('[name="tax"]').parentElement;
-            taxSection.style.display = paymentMethod === 'regular' ? 'block' : 'none';
+            
+            // Only show tax section for regular payment methods (not cash or EMT)
+            const isTaxFree = paymentMethod === 'cash';
+            taxSection.style.display = isTaxFree ? 'none' : 'block';
+            
             calculateTotals();
         }
 
-        // Add calculate totals function
         function calculateTotals() {
             const amounts = [...document.getElementsByName('amount[]')].map(input => Number(input.value) || 0);
             const subtotal = amounts.reduce((sum, amount) => sum + amount, 0);
@@ -668,8 +811,9 @@
                 afterDiscount = subtotal - discountAmount;
             }
 
+            // Only apply tax for non-cash/non-EMT payment methods
             const paymentMethod = document.getElementById('paymentMethod').value;
-            const tax = paymentMethod === 'regular' ? afterDiscount * 0.13 : 0;
+            const tax = paymentMethod === 'cash' ? 0 : afterDiscount * 0.13;
             const total = afterDiscount + tax;
 
             document.querySelector('[name="subtotal"]').value = subtotal.toFixed(2);
@@ -678,15 +822,277 @@
             document.querySelector('[name="total"]').value = total.toFixed(2);
         }
 
-        // Add discount input handler
         function updateDiscountInput() {
             const discountType = document.getElementById('discountType').value;
             const discountRow = document.getElementById('discountRow');
             
-            // Show/hide discount amount input based on type
             discountRow.style.display = discountType === 'none' ? 'none' : 'block';
             calculateTotals();
         }
+
+        function updatePaymentSchedule() {
+            const scheduleType = document.getElementById('paymentCount').value;
+            const totalAmount = parseFloat(document.querySelector('[name="total"]').value) || 0;
+            
+            if (scheduleType === '3') {
+                document.getElementById('defaultPayments').style.display = 'block';
+                document.getElementById('customPayments').style.display = 'none';
+                calculateDefaultPayments(totalAmount);
+            } else {
+                document.getElementById('defaultPayments').style.display = 'none';
+                document.getElementById('customPayments').style.display = 'block';
+                generateCustomPaymentFields(prompt('Number of payments:'), totalAmount);
+            }
+        }
+
+        function calculateDefaultPayments(totalAmount) {
+            document.querySelectorAll('#defaultPayments .payment-group').forEach(group => {
+                const ratioInput = group.querySelector('.ratio');
+                const amountInput = group.querySelector('.amount');
+                const percent = parseFloat(ratioInput.value) || 0;
+                const amount = totalAmount * percent / 100;
+                
+                amountInput.value = isNaN(amount) ? '' : amount.toFixed(2);
+                amountInput.dataset.formatted = amount.toLocaleString('en-US', {
+                    style: 'currency',
+                    currency: 'USD',
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            });
+        }
+
+        function generateCustomPaymentFields(numberOfPayments, totalAmount) {
+            const container = document.getElementById('customPayments');
+            container.innerHTML = `
+                <div id="customPercentageWarning" style="color: #e74c3c; margin: 10px 0;">
+                    ⚠️ Total percentages must add up to exactly 100%
+                </div>
+            `;
+            
+            for (let i = 1; i <= numberOfPayments; i++) {
+                const paymentHTML = `
+                    <div class="payment-group">
+                        <h4>Payment ${i}</h4>
+                        <div class="payment-row">
+                            <input type="number" class="ratio" placeholder="Percentage" 
+                                   min="0" max="100" step="1" 
+                                   oninput="validateCustomPayments()">
+                            <span>%</span>
+                            <input type="number" class="amount" readonly>
+                            <input type="text" class="description" placeholder="Payment description">
+                        </div>
+                    </div>`;
+                container.insertAdjacentHTML('beforeend', paymentHTML);
+            }
+            
+            // Initialize with default values
+            const percentPerPayment = Math.floor(100 / numberOfPayments);
+            const lastPercent = 100 - (percentPerPayment * (numberOfPayments - 1));
+            
+            // Set initial percentages
+            const inputs = container.querySelectorAll('.ratio');
+            inputs.forEach((input, index) => {
+                input.value = index === inputs.length - 1 ? lastPercent : percentPerPayment;
+            });
+            
+            validateCustomPayments();
+        }
+
+        function validateCustomPayments() {
+            const inputs = [...document.querySelectorAll('#customPayments .ratio')];
+            const warning = document.getElementById('customPercentageWarning');
+            
+            if (!warning || inputs.length === 0) return; // Guard against missing elements
+            
+            const totalPercent = inputs.reduce((sum, input) => 
+                sum + (parseFloat(input.value) || 0), 0);
+            
+            if (totalPercent !== 100) {
+                warning.style.display = 'block';
+                inputs.forEach(input => {
+                    input.style.borderColor = '#e74c3c';
+                });
+            } else {
+                warning.style.display = 'none';
+                inputs.forEach(input => {
+                    input.style.borderColor = '#ddd';
+                });
+            }
+            
+            // Update amounts
+            const totalAmount = parseFloat(document.querySelector('[name="total"]').value) || 0;
+            inputs.forEach(input => {
+                const percent = parseFloat(input.value) || 0;
+                const amount = totalAmount * percent / 100;
+                const amountInput = input.parentElement.querySelector('.amount');
+                if (amountInput) {
+                    amountInput.value = amount.toFixed(2);
+                }
+            });
+        }
+
+        function updatePaymentCalculations(totalAmount) {
+            const scheduleType = document.getElementById('paymentCount').value;
+            
+            if (scheduleType === '3') {
+                calculateDefaultPayments(totalAmount);
+            } else {
+                validateCustomPayments();
+            }
+        }
+
+        function validatePaymentsBeforePDF() {
+            const paymentType = document.getElementById('paymentCount').value;
+            let totalPercent = 0;
+            let isValid = true;
+            const warning = document.getElementById('paymentWarning');
+
+            // Clear previous warnings
+            warning.style.display = 'none';
+            document.querySelectorAll('.ratio').forEach(input => input.style.borderColor = '#ddd');
+
+            if (paymentType === '3') {
+                const ratios = [...document.querySelectorAll('#defaultPayments .ratio')];
+                ratios.forEach(input => {
+                    const value = parseFloat(input.value);
+                    if (isNaN(value) || value < 0 || value > 100) {
+                        input.style.borderColor = '#e74c3c';
+                        isValid = false;
+                    }
+                    totalPercent += value;
+                });
+            } else {
+                const inputs = [...document.querySelectorAll('#customPayments .ratio')];
+                inputs.forEach(input => {
+                    const value = parseFloat(input.value);
+                    if (isNaN(value) || value < 0 || value > 100) {
+                        input.style.borderColor = '#e74c3c';
+                        isValid = false;
+                    }
+                    totalPercent += value;
+                });
+            }
+
+            if (!isValid || totalPercent !== 100) {
+                warning.style.display = 'block';
+                return false;
+            }
+            return true;
+        }
+
+        function loadEstimatePaymentSchedule(paymentSchedule) {
+            if (!paymentSchedule || !Array.isArray(paymentSchedule)) return;
+
+            const container = document.getElementById('defaultPayments');
+            container.innerHTML = '';
+
+            paymentSchedule.forEach((payment, index) => {
+                const amountValue = typeof payment.amount === 'string' 
+                    ? parseFloat(payment.amount.replace(/[^0-9.]/g, '')) 
+                    : payment.amount;
+
+                const paymentHTML = `
+                    <div class="payment-group">
+                        <h4>Payment ${index + 1}</h4>
+                        <div class="payment-row">
+                            <input type="number" class="ratio" value="${payment.percent || 0}" 
+                                   min="0" max="100" oninput="updatePaymentCalculations()">
+                            <span>%</span>
+                            <input type="number" class="amount" value="${amountValue || 0}" readonly>
+                            <input type="text" class="description" value="${payment.description || ''}">
+                        </div>
+                    </div>`;
+                container.insertAdjacentHTML('beforeend', paymentHTML);
+            });
+
+            const totalAmount = parseFloat(document.querySelector('[name="total"]').value) || 0;
+            updatePaymentCalculations(totalAmount);
+        }
+
+        window.fetchEstimateData = async function() {
+            try {
+                const estimateNumber = document.querySelector('[name="estimateNumber"]').value;
+                if (!estimateNumber) {
+                    alert('Please enter an estimate number');
+                    return;
+                }
+
+                const { data, error } = await supabaseClient
+                    .from('estimates')
+                    .select('*')
+                    .eq('estimate_number', estimateNumber);
+
+                if (error) throw error;
+                if (!data?.length) {
+                    alert(`No estimate found: ${estimateNumber}`);
+                    return;
+                }
+
+                const estimate = data[0];
+                
+                // Client Information
+                document.querySelector('[name="clientName"]').value = estimate.client_name || '';
+                document.querySelector('[name="clientEmail"]').value = estimate.client_email || '';
+                document.querySelector('[name="clientPhone"]').value = estimate.client_phone || '';
+                
+                // Address Handling
+                const addressParts = (estimate.client_address || '').split(/,\s*/);
+                document.querySelector('[name="clientStreet"]').value = addressParts[0] || '';
+                document.querySelector('[name="clientCity"]').value = addressParts[1]?.split(' ')[0] || '';
+                document.querySelector('[name="clientPostal"]').value = addressParts[1]?.split(' ')[1] || '';
+
+                // Project Details
+                document.querySelector('[name="projectDescription"]').value = estimate.project_description || '';
+                document.getElementById('paymentMethod').value = estimate.payment_method || 'cash';
+                
+                // Line Items
+                const lineItemsContainer = document.getElementById('lineItems');
+                lineItemsContainer.innerHTML = '<div class="line-item">' + 
+                    '<label>Description</label><label>Quantity</label>' +
+                    '<label>Unit Price</label><label>Amount</label><label></label></div>';
+                
+                (estimate.line_items || []).forEach(item => {
+                    const lineItem = document.createElement('div');
+                    lineItem.className = 'line-item';
+                    lineItem.innerHTML = `
+                        <input type="text" name="description[]" value="${item.description || ''}" required>
+                        <input type="number" name="quantity[]" value="${item.quantity || 0}" required>
+                        <input type="number" name="unitPrice[]" value="${item.unit_price || 0}" required>
+                        <input type="number" name="amount[]" value="${item.amount || 0}" readonly>
+                        <button type="button" class="remove-item" onclick="this.parentElement.remove(); calculateTotals();">×</button>
+                    `;
+                    lineItemsContainer.appendChild(lineItem);
+                });
+
+                // Financials
+                document.querySelector('[name="subtotal"]').value = estimate.subtotal || 0;
+                document.getElementById('discountType').value = estimate.discount_type || 'none';
+                document.querySelector('[name="discountAmount"]').value = estimate.discount_amount || 0;
+                document.querySelector('[name="afterDiscount"]').value = estimate.after_discount || 0;
+                document.querySelector('[name="tax"]').value = estimate.tax || 0;
+                document.querySelector('[name="total"]').value = estimate.total || 0;
+                
+                // Payment Schedule
+                if (estimate.payment_schedule && Array.isArray(estimate.payment_schedule)) {
+                    loadEstimatePaymentSchedule(estimate.payment_schedule.map(p => ({
+                        percent: p.percent,
+                        description: p.description,
+                        amount: typeof p.amount === 'string' ? 
+                            parseFloat(p.amount.replace(/[^0-9.]/g, '')) : 
+                            p.amount
+                    })));
+                }
+
+                calculateTotals();
+                updateTaxCalculation();
+                alert('Estimate loaded successfully!');
+
+            } catch (error) {
+                console.error('Estimate load error:', error);
+                alert('Error loading estimate: ' + error.message);
+            }
+        };
     </script>
 </body>
-</html> 
+</html>
