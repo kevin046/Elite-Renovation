@@ -338,6 +338,17 @@
                 </div>
             </div>
 
+            <div class="form-section">
+                <h2 class="section-title">Company Representative</h2>
+                <div class="form-group">
+                    <label>Select Representative:</label>
+                    <select id="representativeSelect" name="representative" class="modern-select" onchange="updateRepresentativeInfo()">
+                        <option value="jay">Jay (647-563-1314)</option>
+                        <option value="wei">Wei Huang Ye (647-833-8386)</option>
+                    </select>
+                </div>
+            </div>
+
             <button type="submit" class="submit-btn">Generate Invoice</button>
         </form>
     </div>
@@ -414,6 +425,8 @@
                     validatePaymentsBeforePDF();
                 });
             });
+
+            updateRepresentativeInfo();
         });
 
         function generateInvoiceNumber() {
@@ -484,276 +497,8 @@
                 submitButton.textContent = 'Generating...';
 
                 // Create PDF
-                window.jsPDF = window.jspdf.jsPDF;
-                const doc = new window.jsPDF({
-                    unit: 'mm',
-                    format: 'a4',
-                    compress: true,
-                    lineHeight: 1.4
-                });
-                
-                // Add page footer to all pages
-                const addFooter = function() {
-                    // Position footer at bottom of page
-                    doc.setFontSize(9);
-                    doc.setTextColor(100, 100, 100);
-                    doc.text('Thank you for choosing Elite Renovation Works!', 
-                        doc.internal.pageSize.width/2, 
-                        doc.internal.pageSize.height - 10, 
-                        { align: 'center', fontSize: 9 }
-                    );
-                };
-
-                // Add footer to first page and set up for future pages
-                addFooter();
-
-                // Hook into internal API to add footer to each new page
-                const originalAddPage = doc.addPage;
-                doc.addPage = function() {
-                    originalAddPage.apply(this, arguments);
-                    addFooter();
-                    return this;
-                };
-                
-                // Set consistent font
-                doc.setFont('helvetica');
-                doc.setFontSize(11);
-                
-                // Add company logo
-                const logoUrl = 'https://i.ibb.co/M58mL0J/transparent-elite-home.png';
-                
-                // Load and add logo
-                const img = new Image();
-                img.src = logoUrl;
-                img.onload = function() {
-                    // Add logo with proper scaling
-                    const imgWidth = 70;
-                    const imgHeight = (img.height * imgWidth) / img.width;
-                    doc.addImage(img, 'PNG', 15, 10, imgWidth, imgHeight);
-                    
-                    // Add INVOICE title in center
-                    doc.setFontSize(20);
-                    doc.setTextColor(44, 62, 80);  // Dark blue color
-                    doc.text('INVOICE', doc.internal.pageSize.width/2, 20, { align: 'center' });
-                    
-                    // Add company info in top right
-                    doc.setFontSize(9);
-                    doc.text([
-                        '6 Interlacken Way',
-                        'Markham, Ontario L3R 5H9',
-                        'Representative: Jay',
-                        'Phone: 647-563-1314',
-                        'Email: jay@eliterenovationworks.ca',
-                        ...(document.getElementById('paymentMethod').value !== 'cash' ? 
-                            ['GST/HST: 743299224RT0001'] : [])
-                    ], doc.internal.pageSize.width - 15, 25, { 
-                        align: 'right',
-                        lineHeightFactor: 1.5
-                    });
-                    
-                    // Add invoice details with smaller font
-                    doc.setFontSize(10);
-                    doc.text('Invoice #: ' + document.querySelector('[name="invoiceNumber"]').value, 15, imgHeight + 25);
-                    doc.text('Estimate #: ' + document.querySelector('[name="estimateNumber"]').value, 15, imgHeight + 35);
-                    doc.text('Date: ' + new Date().toLocaleDateString(), doc.internal.pageSize.width - 15, imgHeight + 25, { align: 'right' });
-
-                    // Add separator line
-                    doc.setDrawColor(44, 62, 80);
-                    doc.setLineWidth(0.5);
-                    doc.line(15, imgHeight + 45, doc.internal.pageSize.width - 15, imgHeight + 45);
-
-                    // Add client info with optimized spacing
-                    doc.setFontSize(11);
-                    doc.text('Client Details:', 15, imgHeight + 55);
-                    doc.setFontSize(10);
-                    doc.text([
-                        'Name: ' + document.querySelector('[name="clientName"]').value,
-                        'Email: ' + document.querySelector('[name="clientEmail"]').value
-                    ], 20, imgHeight + 65);
-                    doc.text([
-                        'Phone: ' + document.querySelector('[name="clientPhone"]').value,
-                        'Address: ' + document.querySelector('[name="clientStreet"]').value + ', ' + 
-                        document.querySelector('[name="clientCity"]').value + ' ' +
-                        document.querySelector('[name="clientPostal"]').value
-                    ], doc.internal.pageSize.width/2, imgHeight + 65);
-              
-                    // Update table position
-                    const lineItems = Array.from(document.querySelectorAll('.line-item:not(:first-child)')).map(row => [
-                        row.querySelector('[name="description[]"]')?.value || '',
-                        row.querySelector('[name="quantity[]"]')?.value || '0',
-                        `$${parseFloat(row.querySelector('[name="unitPrice[]"]')?.value || 0).toFixed(2)}`,
-                        `$${parseFloat(row.querySelector('[name="amount[]"]')?.value || 0).toFixed(2)}`
-                    ]);
-
-                    doc.autoTable({
-                        startY: imgHeight + 80,
-                        head: [['Description', 'Quantity', 'Unit Price', 'Amount']],
-                        body: lineItems,
-                        foot: [
-                            ['', '', 'Subtotal:', '$' + document.querySelector('[name="subtotal"]').value],
-                            ...(document.getElementById('discountType').value !== 'none' ? 
-                                [['', '', `Discount ${document.getElementById('discountType').value === 'percentage' ? 
-                                    '(' + document.querySelector('[name="discountAmount"]').value + '%)' : ''}:`, 
-                                    '-$' + (document.querySelector('[name="subtotal"]').value - 
-                                        document.querySelector('[name="afterDiscount"]').value).toFixed(2)]] : 
-                                []),
-                            ...(document.getElementById('discountType').value !== 'none' ? 
-                                [['', '', 'After Discount:', '$' + document.querySelector('[name="afterDiscount"]').value]] : 
-                                []),
-                            ...(document.getElementById('paymentMethod').value === 'regular' ? 
-                                [['', '', 'Tax (13%):', '$' + document.querySelector('[name="tax"]').value]] : []),
-                            ['', '', 'Total:', '$' + document.querySelector('[name="total"]').value]
-                        ],
-                        theme: 'grid',
-                        headStyles: { 
-                            fillColor: [44, 62, 80],
-                            fontSize: 11,
-                            halign: 'center',
-                            textColor: [255, 255, 255]
-                        },
-                        bodyStyles: { 
-                            fontSize: 10,
-                            lineColor: [200, 200, 200],
-                            textColor: [44, 62, 80]
-                        },
-                        footStyles: { 
-                            fillColor: [249, 249, 249],
-                            fontSize: 10,
-                            fontStyle: 'bold',
-                            halign: 'right',
-                            textColor: [44, 62, 80]
-                        },
-                        columnStyles: {
-                            0: { cellWidth: 'auto' },
-                            1: { cellWidth: 30, halign: 'center' },
-                            2: { cellWidth: 40, halign: 'right' },
-                            3: { cellWidth: 40, halign: 'right' }
-                        }
-                    });
-
-                    // Add payment info with the same structure as estimate form
-                    let finalY = doc.lastAutoTable.finalY + 15;
-                    doc.setFontSize(10);
-                    doc.setTextColor(44, 62, 80); // Dark blue-grey
-                    doc.setFont(undefined, 'normal');
-                    doc.text("Payment Method:", 20, finalY);
-                    doc.setTextColor(0, 0, 0); // Black
-                    doc.text(document.getElementById('paymentMethod').options[document.getElementById('paymentMethod').selectedIndex].text, 50, finalY);
-                    finalY += 5;
-
-                    // Add spacing before payment schedule
-                    finalY += 8;
-                    doc.setFont(undefined, 'normal');
-                    doc.setTextColor(44, 62, 80); // Dark blue-grey
-                    doc.text("Payment Schedule:", 20, finalY);
-                    finalY += 5;
-
-                    // Payment schedule items
-                    let currentY = finalY;
-                    let paymentSchedule = [];
-
-                    if (document.getElementById('paymentCount').value === '3') {
-                        // Default payments
-                        paymentSchedule = Array.from(document.querySelectorAll('#defaultPayments .payment-group')).map(group => ({
-                            percent: group.querySelector('.ratio').value + '%',
-                            amount: parseFloat(group.querySelector('.amount').value).toLocaleString('en-US', {
-                                style: 'currency',
-                                currency: 'USD'
-                            }),
-                            description: group.querySelector('.description').value
-                        }));
-                    } else {
-                        // Custom payments
-                        paymentSchedule = Array.from(document.querySelectorAll('#customPayments .payment-group')).map(group => ({
-                            percent: group.querySelector('.ratio').value + '%',
-                            amount: parseFloat(group.querySelector('.amount').value).toLocaleString('en-US', {
-                                style: 'currency',
-                                currency: 'USD'
-                            }),
-                            description: group.querySelector('.description').value
-                        }));
-                    }
-
-                    paymentSchedule.forEach((payment, index) => {
-                        doc.setFontSize(9);
-                        doc.setTextColor(0, 0, 0); // Black text
-                        
-                        // Payment number and percentage
-                        doc.setFont(undefined, 'normal');
-                        doc.text(`• Payment ${index + 1} (${payment.percent})`, 20, currentY);
-                        
-                        // Amount
-                        doc.text(payment.amount, 70, currentY);
-                        
-                        // Description
-                        const descLines = doc.splitTextToSize(payment.description || '', 160); // Increased width
-                        doc.text(descLines, 22, currentY + 4);
-                        
-                        currentY += (descLines.length * 4) + 8; // Tighter spacing
-                    });
-
-                    // Add project description on page 2
-                    doc.addPage();
-                    doc.setFontSize(14);
-                    doc.setTextColor(44, 62, 80);
-                    doc.text('Project Details', 15, 20);
-
-                    // Add project description with word wrapping
-                    doc.setFontSize(10);
-                    const projectDesc = document.querySelector('[name="projectDescription"]').value;
-                    const splitDesc = doc.splitTextToSize(projectDesc, doc.internal.pageSize.width - 30);
-                    doc.text(splitDesc, 15, 35);
-
-                    // Client Authorization section (page 3)
-                    doc.addPage();
-                    doc.setFontSize(14);
-                    doc.setTextColor(44, 62, 80);
-                    doc.text('Client Authorization', 15, 20);
-                    
-                    doc.setFontSize(10);
-                    doc.setTextColor(0, 0, 0);
-                    doc.text('I hereby approve the work completed and agree to the payment terms:', 15, 35);
-                    
-                    // Signature Lines
-                    doc.setDrawColor(200, 200, 200);
-                    doc.setLineWidth(0.5);
-                    doc.line(15, 50, 80, 50);
-                    doc.text('Print Name', 15, 55);
-                    
-                    doc.line(15, 70, 80, 70);
-                    doc.text('Signature', 15, 75);
-                    
-                    doc.line(15, 90, 50, 90);
-                    doc.text('Date', 15, 95);
-                    
-                    // Contractor section
-                    doc.setFontSize(14);
-                    doc.setTextColor(44, 62, 80);
-                    doc.text('Contractor Approval', 15, 120);
-                    
-                    doc.setFontSize(10);
-                    doc.setTextColor(0, 0, 0);
-                    doc.text('Work completed to professional standards:', 15, 135);
-                    
-                    doc.line(15, 150, 80, 150);
-                    doc.text('Jay Ye', 15, 155);
-                    
-                    doc.line(15, 170, 80, 170);
-                    doc.text('Signature', 15, 175);
-                    
-                    doc.line(15, 190, 50, 190);
-                    doc.text('Date', 15, 195);
-
-                    // Save PDF
-                    doc.save(`invoice-${document.querySelector('[name="invoiceNumber"]').value}.pdf`);
-                    alert('Invoice generated successfully!');
-                };
-                
-                img.onerror = function() {
-                    alert('Error loading company logo');
-                    submitButton.disabled = false;
-                    submitButton.textContent = 'Generate Invoice';
-                };
+                window.generatePDF();
+                alert('Invoice generated successfully!');
             } catch (error) {
                 console.error('Error:', error);
                 alert('Failed to generate invoice: ' + error.message);
@@ -1092,6 +837,309 @@
                 console.error('Estimate load error:', error);
                 alert('Error loading estimate: ' + error.message);
             }
+        };
+
+        function updateRepresentativeInfo() {
+            const selectedRep = document.getElementById('representativeSelect').value;
+            // This will be used when generating the PDF
+            window.selectedRepName = selectedRep === 'wei' ? 'Wei Huang Ye' : 'Jay';
+            window.selectedRepPhone = selectedRep === 'wei' ? '647-833-8386' : '647-563-1314';
+            window.selectedRepEmail = selectedRep === 'wei' ? 'wei.ye@eliterenovationworks.ca' : 'jay@eliterenovationworks.ca';
+        }
+
+        // Update the PDF generation code
+        window.generatePDF = function() {
+            // Initialize PDF with consistent settings
+            window.jsPDF = window.jspdf.jsPDF;
+            const doc = new window.jsPDF({
+                unit: 'mm',
+                format: 'a4',
+                orientation: 'portrait'
+            });
+            
+            // Set consistent font
+            doc.setFont('helvetica');
+            
+            // Define standard font sizes to use throughout the document
+            const FONT_SIZES = {
+                TITLE: 16,       // Main document title
+                HEADING: 12,     // Section headings
+                NORMAL: 9,       // Standard body text
+                SMALL: 8,        // Small text and footnotes
+                TABLE_HEADER: 9, // Table headers
+                TABLE_BODY: 8    // Table content
+            };
+            
+            // Function to add the footer to each page
+            const addFooter = function() {
+                const pageSize = doc.internal.pageSize;
+                const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+                
+                doc.setFontSize(FONT_SIZES.SMALL);
+                doc.setTextColor(100, 100, 100);
+                doc.text('Thank you for choosing Elite Renovation Works!', pageSize.width/2, pageHeight - 10, { align: 'center' });
+            };
+            
+            // Load and add logo
+            const img = new Image();
+            img.src = 'https://i.ibb.co/M58mL0J/transparent-elite-home.png';
+            img.onload = function() {
+                // ===== PAGE 1: Header and Line Items =====
+                
+                // Add logo with proper scaling
+                const imgWidth = 50;
+                const imgHeight = (img.height * imgWidth) / img.width;
+                doc.addImage(img, 'PNG', 15, 10, imgWidth, imgHeight);
+                
+                // Add INVOICE title
+                doc.setFontSize(FONT_SIZES.TITLE);
+                doc.setTextColor(0, 0, 0);
+                doc.text('INVOICE', doc.internal.pageSize.width/2, 20, { align: 'center' });
+                
+                // Company details using consistent font
+                doc.setFontSize(FONT_SIZES.NORMAL);
+                doc.setTextColor(0, 0, 0);
+                
+                const repName = window.selectedRepName || 'Jay';
+                const repPhone = window.selectedRepPhone || '647-563-1314';
+                const repEmail = window.selectedRepEmail || 'jay@eliterenovationworks.ca';
+
+                doc.text([
+                    '6 Interlacken Way',
+                    'Markham, Ontario L3R 5H9',
+                    `Representative: ${repName}`,
+                    `Phone: ${repPhone}`,
+                    `Email: ${repEmail}`,
+                    ...(document.getElementById('paymentMethod').value !== 'cash' ? 
+                        ['GST/HST: 743299224RT0001'] : [])
+                ], doc.internal.pageSize.width - 15, 25, { 
+                    align: 'right',
+                    lineHeightFactor: 1.3
+                });
+                
+                // Invoice details
+                doc.setFontSize(FONT_SIZES.NORMAL);
+                doc.text('Invoice #: ' + document.querySelector('[name="invoiceNumber"]').value, 15, imgHeight + 25);
+                doc.text('Estimate #: ' + document.querySelector('[name="estimateNumber"]').value, 15, imgHeight + 30);
+                doc.text('Date: ' + new Date().toLocaleDateString(), 15, imgHeight + 35);
+                doc.text('Due Date: ' + document.querySelector('[name="dueDate"]').value, 15, imgHeight + 40);
+                
+                // Add separator line
+                doc.setDrawColor(44, 62, 80);
+                doc.setLineWidth(0.3);
+                doc.line(15, imgHeight + 45, doc.internal.pageSize.width - 15, imgHeight + 45);
+                
+                // Client details
+                doc.setFontSize(FONT_SIZES.HEADING);
+                doc.text('Client Details:', 15, imgHeight + 55);
+                
+                doc.setFontSize(FONT_SIZES.NORMAL);
+                doc.text([
+                    'Name: ' + document.querySelector('[name="clientName"]').value,
+                    'Email: ' + document.querySelector('[name="clientEmail"]').value,
+                    'Phone: ' + document.querySelector('[name="clientPhone"]').value
+                ], 20, imgHeight + 65);
+                
+                doc.text([
+                    'Address:',
+                    document.querySelector('[name="clientStreet"]').value,
+                    document.querySelector('[name="clientCity"]').value + ' ' + document.querySelector('[name="clientPostal"]').value
+                ], doc.internal.pageSize.width/2, imgHeight + 65);
+                
+                // Line Items Table
+                const lineItems = Array.from(document.querySelectorAll('.line-item:not(:first-child)')).map(row => [
+                    row.querySelector('[name="description[]"]')?.value || '',
+                    row.querySelector('[name="quantity[]"]')?.value || '0',
+                    `$${parseFloat(row.querySelector('[name="unitPrice[]"]')?.value || 0).toFixed(2)}`,
+                    `$${parseFloat(row.querySelector('[name="amount[]"]')?.value || 0).toFixed(2)}`
+                ]);
+
+                doc.autoTable({
+                    startY: imgHeight + 85,
+                    head: [['Description', 'Quantity', 'Unit Price', 'Amount']],
+                    body: lineItems,
+                    foot: [
+                        ['', '', 'Subtotal:', '$' + document.querySelector('[name="subtotal"]').value],
+                        ...(document.getElementById('discountType').value !== 'none' ? 
+                            [['', '', `Discount ${document.getElementById('discountType').value === 'percentage' ? 
+                                '(' + document.querySelector('[name="discountAmount"]').value + '%)' : ''}:`, 
+                                '-$' + (document.querySelector('[name="subtotal"]').value - 
+                                    document.querySelector('[name="afterDiscount"]').value).toFixed(2)]] : 
+                            []),
+                        ...(document.getElementById('discountType').value !== 'none' ? 
+                            [['', '', 'After Discount:', '$' + document.querySelector('[name="afterDiscount"]').value]] : 
+                            []),
+                        ...(document.getElementById('paymentMethod').value !== 'cash' ? 
+                            [['', '', 'Tax (13%):', '$' + document.querySelector('[name="tax"]').value]] : []),
+                        ['', '', 'Total:', '$' + document.querySelector('[name="total"]').value]
+                    ],
+                    theme: 'grid',
+                    headStyles: { 
+                        fillColor: [44, 62, 80], 
+                        textColor: [255, 255, 255],
+                        fontSize: FONT_SIZES.TABLE_HEADER,
+                        fontStyle: 'bold',
+                        halign: 'center'
+                    },
+                    bodyStyles: { 
+                        fontSize: FONT_SIZES.TABLE_BODY,
+                        lineColor: [200, 200, 200]
+                    },
+                    footStyles: { 
+                        fillColor: [240, 240, 240], 
+                        textColor: [44, 62, 80],
+                        fontSize: FONT_SIZES.TABLE_BODY,
+                        fontStyle: 'bold'
+                    },
+                    didDrawPage: function(data) {
+                        addFooter();
+                    }
+                });
+                
+                // ===== PAGE 2: Project Description =====
+                doc.addPage();
+                
+                // Add logo and header to page 2
+                doc.addImage(img, 'PNG', 15, 10, imgWidth, imgHeight);
+                doc.setFontSize(FONT_SIZES.TITLE);
+                doc.setTextColor(0, 0, 0);
+                doc.text('PROJECT DETAILS', doc.internal.pageSize.width/2, 20, { align: 'center' });
+                
+                doc.setDrawColor(44, 62, 80);
+                doc.setLineWidth(0.3);
+                doc.line(15, 30, doc.internal.pageSize.width - 15, 30);
+                
+                // Project description section
+                doc.setFontSize(FONT_SIZES.HEADING);
+                doc.setTextColor(0, 0, 0);
+                doc.text('Project Description', 15, 60);
+                
+                // Get project description and format it for multi-line display
+                const projectDescription = document.querySelector('[name="projectDescription"]').value || 'No description provided.';
+                doc.setFontSize(FONT_SIZES.NORMAL);
+                doc.setTextColor(0, 0, 0);
+                
+                // Split description into paragraphs
+                const descriptionLines = doc.splitTextToSize(projectDescription, doc.internal.pageSize.width - 30);
+                doc.text(descriptionLines, 20, 70);
+                
+                // Add invoice number and date references
+                doc.setFontSize(FONT_SIZES.NORMAL);
+                doc.text('Invoice #: ' + document.querySelector('[name="invoiceNumber"]').value, 15, 40);
+                doc.text('Date: ' + new Date().toLocaleDateString(), doc.internal.pageSize.width - 15, 40, { align: 'right' });
+                
+                // Payment information
+                let currentY = 55 + (descriptionLines.length * 5);
+                if (currentY < 100) currentY = 100; // Ensure minimum spacing
+                
+                doc.setFontSize(FONT_SIZES.HEADING);
+                doc.setTextColor(0, 0, 0);
+                doc.text('Payment Information', 15, currentY);
+                currentY += 10;
+                
+                doc.setFontSize(FONT_SIZES.NORMAL);
+                doc.setTextColor(0, 0, 0);
+                doc.text('Payment Method: ' + document.getElementById('paymentMethod').options[document.getElementById('paymentMethod').selectedIndex].text, 20, currentY);
+                currentY += 8;
+                
+                // Payment schedule
+                doc.setFontSize(FONT_SIZES.HEADING);
+                doc.text('Payment Schedule', 15, currentY);
+                currentY += 10;
+                
+                // Get payment schedule
+                let paymentSchedule = [];
+                const paymentType = document.getElementById('paymentCount').value;
+                if (paymentType === '3') {
+                    // Default 3 payments
+                    const defaultContainer = document.getElementById('defaultPayments');
+                    const groups = defaultContainer.querySelectorAll('.payment-group');
+                    paymentSchedule = Array.from(groups).map((group, index) => ({
+                        percent: parseFloat(group.querySelector('.ratio').value),
+                        amount: parseFloat(group.querySelector('.amount').value),
+                        description: group.querySelector('.description').value
+                    }));
+                } else {
+                    // Custom payments
+                    const customContainer = document.getElementById('customPayments');
+                    const groups = customContainer.querySelectorAll('.payment-group');
+                    paymentSchedule = Array.from(groups).map((group, index) => ({
+                        percent: parseFloat(group.querySelector('.ratio').value),
+                        amount: parseFloat(group.querySelector('.amount').value),
+                        description: group.querySelector('.description').value
+                    }));
+                }
+                
+                // Add payment schedule to PDF
+                doc.setFontSize(FONT_SIZES.NORMAL);
+                paymentSchedule.forEach((payment, index) => {
+                    doc.text(`Payment ${index + 1}: $${payment.amount.toFixed(2)} (${payment.percent}%) - ${payment.description}`, 20, currentY);
+                    currentY += 7;
+                });
+                
+                // Add footer to page 2
+                addFooter();
+                
+                // ===== PAGE 3: Signature Page =====
+                doc.addPage();
+                
+                // Add logo and header to page 3
+                doc.addImage(img, 'PNG', 15, 10, imgWidth, imgHeight);
+                doc.setFontSize(FONT_SIZES.TITLE);
+                doc.setTextColor(0, 0, 0);
+                doc.text('SIGNATURES', doc.internal.pageSize.width/2, 20, { align: 'center' });
+                
+                doc.setDrawColor(44, 62, 80);
+                doc.setLineWidth(0.3);
+                doc.line(15, 30, doc.internal.pageSize.width - 15, 30);
+                
+                // Add invoice number and date references on page 3
+                doc.setFontSize(FONT_SIZES.NORMAL);
+                doc.text('Invoice #: ' + document.querySelector('[name="invoiceNumber"]').value, 15, 40);
+                doc.text('Date: ' + new Date().toLocaleDateString(), doc.internal.pageSize.width - 15, 40, { align: 'right' });
+                
+                // Add agreement text
+                doc.setFontSize(FONT_SIZES.NORMAL);
+                doc.setTextColor(0, 0, 0);
+                const agreementText = "By signing below, customer agrees to the scope of work detailed in this invoice, " +
+                                     "the payment schedule, and authorizes Elite Renovation Works to proceed with the project " +
+                                     "as described. Both parties agree that any modifications to the work must be documented " +
+                                     "in writing and may affect the final cost.";
+                
+                const agreementLines = doc.splitTextToSize(agreementText, doc.internal.pageSize.width - 30);
+                doc.text(agreementLines, 15, 60);
+                
+                // Add signature lines
+                const signatureY = 80;
+                
+                // Client signature
+                doc.setLineWidth(0.5);
+                doc.line(15, signatureY, doc.internal.pageSize.width/2 - 20, signatureY);
+                doc.setFontSize(FONT_SIZES.NORMAL);
+                doc.text('Client Signature', 15, signatureY + 7);
+                doc.text('Date: ____________________', 15, signatureY + 15);
+                doc.text('Print Name: ' + document.querySelector('[name="clientName"]').value, 15, signatureY + 23);
+                
+                // Contractor signature
+                doc.line(doc.internal.pageSize.width/2 + 10, signatureY, doc.internal.pageSize.width - 15, signatureY);
+                doc.text('Contractor Signature', doc.internal.pageSize.width/2 + 10, signatureY + 7);
+                doc.text('Date: ____________________', doc.internal.pageSize.width/2 + 10, signatureY + 15);
+                doc.text('Print Name: ' + repName, doc.internal.pageSize.width/2 + 10, signatureY + 23);
+                
+                // Contact information at bottom of signature page
+                doc.setFontSize(FONT_SIZES.NORMAL);
+                doc.setTextColor(44, 62, 80);
+                doc.text([
+                    'For any questions regarding this invoice, please contact:',
+                    `${repName} | Phone: ${repPhone} | Email: ${repEmail}`
+                ], doc.internal.pageSize.width/2, 120, { align: 'center' });
+                
+                // Add footer to page 3
+                addFooter();
+                
+                // Save the PDF
+                doc.save('invoice-' + document.querySelector('[name="invoiceNumber"]').value + '.pdf');
+            };
         };
     </script>
 </body>

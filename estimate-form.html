@@ -729,6 +729,25 @@
                     </div>
                 </div>
 
+                <!-- Add representative selection field in the estimate form -->
+                <div class="form-section">
+                    <h2 class="section-title">Company Representative</h2>
+                    <div class="form-group">
+                        <label>Select Representative:</label>
+                        <select id="representativeSelect" class="modern-select" onchange="updateRepresentativeInfo()">
+                            <option value="jay">Jay (647-563-1314)</option>
+                            <option value="wei">Wei Huang Ye (647-833-8386)</option>
+                        </select>
+                    </div>
+                    
+                    <div id="representativeInfo" class="company-info-small">
+                        <p><strong>Elite Renovation Works</strong></p>
+                        <p id="repName">Jay | 647-563-1314</p>
+                        <p id="repEmail">jay@eliterenovationworks.ca</p>
+                        <p>6 Interlacken Way, Markham, ON L3R 5H9</p>
+                    </div>
+                </div>
+
                 <div class="form-actions">
                     <button type="submit" class="cta-button submit-button">
                         Generate Estimate
@@ -1059,13 +1078,18 @@
                     doc.text('ESTIMATE', doc.internal.pageSize.width/2, 20, { align: 'center' });
                     
                     // Add company info in top right
+                    const selectedRep = document.getElementById('representativeSelect').value;
+                    const repName = selectedRep === 'wei' ? 'Wei Huang Ye' : 'Jay';
+                    const repPhone = selectedRep === 'wei' ? '647-833-8386' : '647-563-1314';
+                    const repEmail = selectedRep === 'wei' ? 'wei.ye@eliterenovationworks.ca' : 'jay@eliterenovationworks.ca';
+
                     doc.setFontSize(9);
                     doc.text([
                         '6 Interlacken Way',
                         'Markham, Ontario L3R 5H9',
-                        'Representative: Jay',
-                        'Phone: 647-563-1314',
-                        'Email: jay@eliterenovationworks.ca',
+                        `Representative: ${repName}`,
+                        `Phone: ${repPhone}`,
+                        `Email: ${repEmail}`,
                     ], doc.internal.pageSize.width - 15, 25, { 
                         align: 'right',
                         lineHeightFactor: 1.5
@@ -1152,6 +1176,16 @@
                             1: { cellWidth: 30, halign: 'center' },
                             2: { cellWidth: 40, halign: 'right' },
                             3: { cellWidth: 40, halign: 'right' }
+                        },
+                        didDrawPage: function(data) {
+                            // Add footer to each page
+                            const pageSize = doc.internal.pageSize;
+                            const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+                            
+                            // Add footer text
+                            doc.setTextColor(100, 100, 100);
+                            doc.setFontSize(9);
+                            doc.text('Thank you for choosing Elite Renovation Works!', pageSize.width / 2, pageHeight - 15, { align: 'center' });
                         }
                     });
 
@@ -1524,14 +1558,18 @@
                     if (addressParts.length >= 2) {
                         document.querySelector('[name="clientStreet"]').value = addressParts[0].trim();
                         
-                        // The second part might contain city and postal code
-                        const cityPostalParts = addressParts[1].trim().split(' ');
-                        if (cityPostalParts.length >= 2) {
-                            // First part is city, rest is postal code (which might be multiple words)
-                            document.querySelector('[name="clientCity"]').value = cityPostalParts[0].trim();
-                            document.querySelector('[name="clientPostal"]').value = cityPostalParts.slice(1).join(' ').trim();
+                        // Get city and postal code parts
+                        const cityAndPostal = addressParts[1].trim();
+                        // Find first space after a letter (to separate city from postal)
+                        const cityEndPos = cityAndPostal.search(/[a-zA-Z] /i);
+                        
+                        if (cityEndPos > 0) {
+                            const city = cityAndPostal.substring(0, cityEndPos + 1);
+                            const postal = cityAndPostal.substring(cityEndPos + 2);
+                            document.querySelector('[name="clientCity"]').value = city;
+                            document.querySelector('[name="clientPostal"]').value = postal;
                         } else {
-                            document.querySelector('[name="clientCity"]').value = cityPostalParts[0] || '';
+                            document.querySelector('[name="clientCity"]').value = cityAndPostal;
                         }
                     }
                 }
@@ -1540,11 +1578,6 @@
                 if (editData.client_postal) {
                     document.querySelector('[name="clientPostal"]').value = editData.client_postal;
                 }
-                
-                // Set amounts
-                if (editData.subtotal) document.querySelector('[name="subtotal"]').value = editData.subtotal;
-                if (editData.tax) document.querySelector('[name="tax"]').value = editData.tax;
-                if (editData.total) document.querySelector('[name="total"]').value = editData.total;
                 
                 // Set payment method
                 if (editData.payment_method) {
@@ -1555,61 +1588,91 @@
                 if (editData.discount_type) {
                     document.getElementById('discountType').value = editData.discount_type;
                     document.querySelector('[name="discountAmount"]').value = editData.discount_amount || '0';
-                    document.querySelector('[name="afterDiscount"]').value = editData.after_discount || '0';
-                    updateDiscountInput(); // Make sure this function exists in your code
                 }
                 
-                // Load line items
-                if (editData.line_items && Array.isArray(editData.line_items)) {
-                    // Fix the line items loading code
-                    const lineItemsContainer = document.getElementById('lineItems');
-                    const templateRow = lineItemsContainer.querySelector('tr');
-                    
-                    // Clone the template row instead of manipulating the HTML directly
-                    if (templateRow) {
-                        // Clear existing rows except the template
-                        while (lineItemsContainer.children.length > 1) {
-                            lineItemsContainer.removeChild(lineItemsContainer.lastChild);
-                        }
-                        
-                        // Add rows for each line item
-                        editData.line_items.forEach(item => {
-                            // Clone the template row instead of calling addLineItem
-                            const newRow = templateRow.cloneNode(true);
-                            
-                            // Fill in the fields
-                            if (newRow) {
-                                newRow.querySelector('.item-desc').value = item.description || '';
-                                newRow.querySelector('.quantity').value = item.quantity || '';
-                                newRow.querySelector('.rate').value = item.unit_price || '';
-                                
-                                // Calculate the amount
-                                const qty = parseFloat(item.quantity) || 0;
-                                const rate = parseFloat(item.unit_price) || 0;
-                                const amount = qty * rate;
-                                
-                                // Update amount display
-                                newRow.querySelector('.item-total').textContent = amount.toFixed(2);
-                                
-                                // Add the new row to the container
-                                lineItemsContainer.appendChild(newRow);
-                            }
-                        });
-                    }
-                    
-                    // Trigger total recalculation
-                    calculateTotal();
+                // IMPORTANT: Clear existing line items before adding new ones
+                const lineItemsContainer = document.getElementById('lineItems');
+                while (lineItemsContainer.children.length > 1) {
+                    lineItemsContainer.removeChild(lineItemsContainer.lastChild);
                 }
+                
+                // Add line items using the existing addLineItem function
+                if (editData.line_items && Array.isArray(editData.line_items)) {
+                    console.log("Loading line items:", editData.line_items);
+                    editData.line_items.forEach(item => {
+                        // Call addLineItem to ensure all event listeners are properly set up
+                        addLineItem();
+                        
+                        // Get the newly added row (last child of the container)
+                        const newRow = lineItemsContainer.lastElementChild;
+                        if (newRow) {
+                            // Fill in the fields
+                            newRow.querySelector('.item-desc').value = item.description || '';
+                            newRow.querySelector('.quantity').value = item.quantity || '';
+                            newRow.querySelector('.rate').value = item.unit_price || '';
+                            
+                            // Calculate amount (will be done by the rate's onchange handler)
+                            const rateInput = newRow.querySelector('.rate');
+                            const event = new Event('input', { bubbles: true });
+                            rateInput.dispatchEvent(event);
+                        }
+                    });
+                }
+                
+                // Calculate all totals at the end
+                calculateTotal();
                 
                 // Update the title
                 document.querySelector('h1').textContent = 'Edit Estimate';
                 document.querySelector('button[type="submit"]').textContent = 'Update Estimate';
                 
-                // Clear the edit mode flag and stored data
+                // Clear storage to prevent reloading on refresh
                 sessionStorage.removeItem('isEditingEstimate');
                 sessionStorage.removeItem('editEstimateData');
                 localStorage.removeItem('editEstimateData');
             }
+        });
+
+        // Add JavaScript to handle representative change
+        function updateRepresentativeInfo() {
+            const selectedRep = document.getElementById('representativeSelect').value;
+            const repName = document.getElementById('repName');
+            const repEmail = document.getElementById('repEmail');
+            
+            if (selectedRep === 'wei') {
+                repName.textContent = 'Wei Huang Ye | 647-833-8386';
+                repEmail.textContent = 'wei.ye@eliterenovationworks.ca';
+            } else {
+                repName.textContent = 'Jay | 647-563-1314';
+                repEmail.textContent = 'jay@eliterenovationworks.ca';
+            }
+        }
+
+        // Add this function to update the payment method options based on selected representative
+        function updatePaymentMethodOptions() {
+            const selectedRep = document.getElementById('representativeSelect').value;
+            const repEmail = selectedRep === 'wei' ? 'wei.ye@eliterenovationworks.ca' : 'jay@eliterenovationworks.ca';
+            
+            // Update the E-Transfer option text
+            const paymentMethod = document.getElementById('paymentMethod');
+            const eTransferOption = Array.from(paymentMethod.options).find(option => 
+                option.text.includes('E-Transfer'));
+            
+            if (eTransferOption) {
+                eTransferOption.text = `E-Transfer (${repEmail}) (Tax Free)`;
+            }
+        }
+
+        // Call this function when representative changes
+        document.getElementById('representativeSelect').addEventListener('change', function() {
+            updateRepresentativeInfo();
+            updatePaymentMethodOptions();
+        });
+
+        // Also call it on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add to existing handler
+            updatePaymentMethodOptions();
         });
     </script>
 </body>
