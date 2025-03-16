@@ -897,15 +897,15 @@
                     // Save current state
                     doc.saveGraphicsState();
                     
-                    // Create watermark with logo
+                    // Create watermark with logo - make it much larger to cover most of page
                     const centerX = pageWidth / 2;
                     const centerY = pageHeight / 2;
                     
-                    // Set transparency
-                    doc.setGState(new doc.GState({opacity: 0.1}));
+                    // Set very light transparency for the background logo
+                    doc.setGState(new doc.GState({opacity: 0.07}));
                     
-                    // Calculate watermark size (bigger than header logo)
-                    const watermarkWidth = 120;
+                    // Calculate watermark size (much bigger to cover most of page)
+                    const watermarkWidth = pageWidth * 0.9; // 90% of page width
                     const watermarkHeight = (img.height * watermarkWidth) / img.width;
                     
                     // Add watermark - positioned in center of page
@@ -917,13 +917,40 @@
                         watermarkHeight
                     );
                     
-                    // Add "PENDING" text
-                    doc.setFontSize(40);
-                    doc.setTextColor(200, 100, 100); // Reddish color
-                    doc.setGState(new doc.GState({opacity: 0.2}));
-                    doc.text('PENDING', centerX, centerY + watermarkHeight/2 + 20, { 
+                    // Add multiple "PENDING" watermarks to cover the page in a pattern
+                    doc.setGState(new doc.GState({opacity: 0.15}));
+                    doc.setFontSize(80); // Much larger text
+                    doc.setTextColor(200, 80, 80); // More prominent red color
+                    
+                    // Add multiple "PENDING" watermarks in different positions and angles
+                    // Center
+                    doc.text('PENDING', centerX, centerY, { 
                         align: 'center',
                         angle: 30 // Diagonal text
+                    });
+                    
+                    // Top left to bottom right diagonal
+                    doc.text('PENDING', centerX - pageWidth/4, centerY - pageHeight/4, { 
+                        align: 'center',
+                        angle: 30
+                    });
+                    
+                    // Bottom left to top right diagonal
+                    doc.text('PENDING', centerX - pageWidth/4, centerY + pageHeight/4, { 
+                        align: 'center',
+                        angle: -30
+                    });
+                    
+                    // Top right to bottom left diagonal
+                    doc.text('PENDING', centerX + pageWidth/4, centerY - pageHeight/4, { 
+                        align: 'center',
+                        angle: -30
+                    });
+                    
+                    // Bottom right to top left diagonal
+                    doc.text('PENDING', centerX + pageWidth/4, centerY + pageHeight/4, { 
+                        align: 'center',
+                        angle: 30
                     });
                     
                     // Restore state
